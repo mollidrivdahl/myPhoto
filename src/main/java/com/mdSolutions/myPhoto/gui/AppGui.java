@@ -24,9 +24,9 @@ public class AppGui {
     @Getter @Setter private MyPhoto myPhotoInstance;
     @Getter @Setter private JPanel windowPanel;
     @Getter @Setter private JPanel topPanel;
-    @Getter @Setter private JPanel menuPanel;
-    @Getter @Setter private JPanel gridViewPanel;
-    @Getter @Setter private JScrollPane centerScrollPanel;
+    @Getter @Setter private JPanel menuPanel;       //left panel
+    @Getter @Setter private JPanel gridViewPanel;   //center panel - for containing all MediaItems, nested within centerScrollPane's JViewport
+    @Getter @Setter private JScrollPane centerScrollPane;
     @Getter @Setter private JPanel rightPanel;
     @Getter @Setter private JPanel bottomPanel;
 
@@ -58,7 +58,7 @@ public class AppGui {
         gridViewPanel = new JPanel(new MyFlowLayout(MyFlowLayout.LEADING, 25, 40));
         gridViewPanel.setBackground(Color.black);
         gridViewPanel.setSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
-        centerScrollPanel = new JScrollPane(gridViewPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+        centerScrollPane = new JScrollPane(gridViewPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);    //displays gridViewPanel within centerScrollPane's JViewport
 
         rightPanel = new JPanel();
@@ -71,7 +71,7 @@ public class AppGui {
 
         windowPanel.add(topPanel, BorderLayout.PAGE_START);
         windowPanel.add(menuPanel, BorderLayout.LINE_START);
-        windowPanel.add(centerScrollPanel, BorderLayout.CENTER);
+        windowPanel.add(centerScrollPane, BorderLayout.CENTER);
         windowPanel.add(rightPanel, BorderLayout.LINE_END);
         windowPanel.add(bottomPanel, BorderLayout.PAGE_END);
     }
@@ -87,6 +87,11 @@ public class AppGui {
 
 
         //add "media items" to center panel
-
+        //TODO: populateGridView(myPhotoInstance.getCurrentCollection());
     }
+
+    //TODO: Implement method
+    //private void populateGridView(MediaCollection gridViewCollection) {
+        //foreach gridViewCollection create new PanelDraggable(gridViewItem)
+    //}
 }
