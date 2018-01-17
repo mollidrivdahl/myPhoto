@@ -1,10 +1,13 @@
 package com.mdSolutions.myPhoto.gui;
 
+import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MyPhoto;
 import lombok.Getter;
 import lombok.Setter;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class AppGui {
 
@@ -21,7 +24,7 @@ public class AppGui {
 
 
     private static AppGui _instance;
-    @Getter @Setter private MyPhoto myPhotoInstance;
+    @Getter @Setter private MyPhoto myPhoto;
     @Getter @Setter private JPanel windowPanel;
     @Getter @Setter private JPanel topPanel;
     @Getter @Setter private JPanel menuPanel;       //left panel
@@ -31,7 +34,7 @@ public class AppGui {
     @Getter @Setter private JPanel bottomPanel;
 
     public AppGui() {
-        myPhotoInstance = new MyPhoto();
+        myPhoto = new MyPhoto();
         createPanels();
         initializePanels();
     }
@@ -51,7 +54,7 @@ public class AppGui {
         topPanel.setBackground(Color.gray);
         topPanel.setPreferredSize(new Dimension(WIN_WIDTH, TITLE_HEIGHT));
 
-        menuPanel = new JPanel();
+        menuPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 30));
         menuPanel.setBackground(Color.gray);
         menuPanel.setPreferredSize(new Dimension(MENU_WIDTH, MID_HEIGHT));
 
@@ -77,21 +80,36 @@ public class AppGui {
     }
 
     private void initializePanels() {
-        //add "title" to top panel
+        //--add "title" to top panel
         JLabel titleLabel = new JLabel("myPhotoPrototype");
         titleLabel.setForeground(Color.white);
         titleLabel.setFont(new Font("sansserif", Font.BOLD, 24));
         topPanel.add(titleLabel);
 
-        //add "buttons" and "drop locations" to left panel
+        //--add "buttons" and "drop locations" to left menu panel
+        initializeMenuPanel();
 
+        //--add "media items" to center panel
+        //for now, assuming no collections exists at root grid view level
+        //TODO: populateGridView(myPhoto.getCurrentCollection());
+    }
 
-        //add "media items" to center panel
-        //TODO: populateGridView(myPhotoInstance.getCurrentCollection());
+    void initializeMenuPanel() {
+        //"create collection" button
+        JButton btnCreateCollection = new JButton();
+        btnCreateCollection.setText("<html>Create<br/>Collection</html>");
+        btnCreateCollection.setPreferredSize(new Dimension(100, 50));
+        btnCreateCollection.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //TODO: Follow UC 2 Scenario & Sequence Diagram
+                MediaCollection newCollection = myPhoto.createCollection();
+            }
+        });
+        menuPanel.add(btnCreateCollection);
     }
 
     //TODO: Implement method
     //private void populateGridView(MediaCollection gridViewCollection) {
-        //foreach gridViewCollection create new PanelDraggable(gridViewItem)
+        //foreach gridViewCollection create new PanelDraggable(gridViewItem) and MediaItemDroppable(isCollection true or false)
     //}
 }

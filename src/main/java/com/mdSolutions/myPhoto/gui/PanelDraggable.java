@@ -1,5 +1,8 @@
 package com.mdSolutions.myPhoto.gui;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -15,8 +18,9 @@ public class PanelDraggable extends JPanel implements Transferable,
 
     //marks this JPanel as the source of the Drag
     private DragSource source;
-    private int index;
-    private int originalIndex;
+    //@Getter @Setter private MediaItem mediaItem;
+    @Getter @Setter private int index;
+    @Getter @Setter private int originalIndex;
 
     public PanelDraggable(){
 
