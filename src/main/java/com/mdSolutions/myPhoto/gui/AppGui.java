@@ -81,7 +81,7 @@ public class AppGui {
 
     private void initializePanels() {
         //--add "title" to top panel
-        JLabel titleLabel = new JLabel("myPhotoPrototype");
+        JLabel titleLabel = new JLabel("myPhoto");
         titleLabel.setForeground(Color.white);
         titleLabel.setFont(new Font("sansserif", Font.BOLD, 24));
         topPanel.add(titleLabel);
@@ -103,6 +103,7 @@ public class AppGui {
             public void actionPerformed(ActionEvent e) {
                 //TODO: Follow UC 2 Scenario & Sequence Diagram
                 MediaCollection newCollection = myPhoto.createCollection();
+
             }
         });
         menuPanel.add(btnCreateCollection);
