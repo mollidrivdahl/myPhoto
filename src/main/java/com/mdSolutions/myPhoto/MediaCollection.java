@@ -21,7 +21,7 @@ public class MediaCollection extends MediaItem {
         tailItem = null;
     }
 
-    public MediaCollection(String name, int id, String relPath, MediaItem nextItem, MediaItem previusItem,
+    public MediaCollection(String name, Integer id, String relPath, MediaItem nextItem, MediaItem previusItem,
                            Integer parentId, String parentCollectionPath, int levelNum, String coverPhotoPath) {
         super(name, id, relPath, nextItem, previusItem, parentId, parentCollectionPath, levelNum);
         this.coverPhotoPath = coverPhotoPath;

@@ -2,12 +2,11 @@ package com.mdSolutions.myPhoto;
 
 import java.io.File;
 import java.sql.*;
-import java.util.ArrayList;
 
 public class DbAccess {
 
-    private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INT PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INT REFERENCES MediaItem (Id) ON DELETE CASCADE, NextItemId INT REFERENCES MediaItem (Id) ON DELETE CASCADE, PrevItemId INT REFERENCES MediaItem (Id) ON DELETE CASCADE, LevelNum INT NOT NULL );");
-    private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INT PRIMARY KEY REFERENCES MediaItem (Id) ON DELETE CASCADE, CoverPhotoPath VARCHAR(256) NULL);");
+    private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INTEGER PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, NextItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, PrevItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, LevelNum INT NOT NULL );");
+    private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INTEGER PRIMARY KEY REFERENCES MediaItem (Id) ON DELETE CASCADE, CoverPhotoPath VARCHAR(256) NULL);");
 
     private static DbAccess _instance;
     private Connection dbConnection;
@@ -96,16 +95,12 @@ public class DbAccess {
             ResultSet rs = query.executeQuery(queryStr);
 
             while (rs.next()) {
-                rootCollection.setId(rs.getInt("Id"));
+                rootCollection.setId((Integer)rs.getObject("Id"));
                 rootCollection.setName(rs.getString("Name"));
                 rootCollection.setRelPath(rs.getString("RelPath"));
                 rootCollection.setParentId((Integer)rs.getObject("ParentId"));
-                //rootCollection.setNextItem(null); //skip id value
-                //rootCollection.setPreviusItem(null);  //skip id value
                 rootCollection.setLevelNum(rs.getInt("LevelNum"));
                 rootCollection.setCoverPhotoPath(rs.getString("CoverPhotoPath"));
-                //rootCollection.setSelected(false);
-                //rootCollection.setListOfChildren(new ArrayList<MediaItem>());
 
                 //TODO: query for all the children of this root collection to update it's listOfChildren, headItem, & tailItem
             }
@@ -125,7 +120,7 @@ public class DbAccess {
         Statement stmt = null;
         int newId = -1;
         MediaItem prevItem = newCollection.getPreviusItem();
-        Integer prevItemId = (prevItem != null) ? prevItem.getId() : null;
+        String prevItemId = (prevItem != null) ? prevItem.getId().toString() : "null";
 
         try {
             stmt = dbConnection.createStatement();
@@ -133,21 +128,20 @@ public class DbAccess {
             //insert new collection into db
             stmt.executeUpdate(String.format("INSERT INTO MediaItem(Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum)" +
                     "VALUES(\'" + newCollection.getName() + "\',\'" + newCollection.getRelPath() + "\'," + newCollection.getParentId() +
-                    "," + null + "," + prevItemId + "," + newCollection.getLevelNum() + ");"));
+                    ", null ," + prevItemId + "," + newCollection.getLevelNum() + ");"));
 
             //retrieve value for id of newly inserted collection
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                newId = rs.getInt(1);
-            }
+            newId = stmt.getGeneratedKeys().getInt(1);
+            System.out.println("** rowId = " + newId + "**");
 
             //insert new collection into referencing table in db
             stmt.executeUpdate(String.format("INSERT INTO Collection(Id, CoverPhotoPath)" +
                     "VALUES(" + newId + ",\'" + newCollection.getCoverPhotoPath() + "\');"));
 
             //update previous item in parent collection to point to new collection as its next item
-            if (prevItemId != null)
+            if (!prevItemId.equals("null"))
                 stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + newId + " WHERE Id = " + prevItemId + ";"));
+            
         }
         catch (SQLException ex) {
             System.out.println(ex.getMessage());
