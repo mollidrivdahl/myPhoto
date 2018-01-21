@@ -131,9 +131,14 @@ public class AppGui {
     public void populateGridView(MediaCollection gridViewCollection) {
         gridViewPanel.removeAll();
 
-        //TODO: change from in-order iteration to iterating from head to tail
-        for (int i = 0; i < gridViewCollection.getListOfChildren().size(); i++) {
-            appendToGridView(gridViewCollection.getListOfChildren().get(i), i);
+        //iterate over media items from head to tail
+        MediaItem travel = gridViewCollection.getHeadItem();
+        int index = 0;
+
+        while (travel != null) {
+            appendToGridView(travel, index);
+            index++;
+            travel = travel.getNextItem();
         }
 
         gridViewPanel.revalidate();
