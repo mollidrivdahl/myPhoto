@@ -15,7 +15,9 @@ public class MyPhoto {
     }
 
     public MediaCollection createCollection() {
-        //TODO: check if attempting inside level 4
+        //check if new collection would be created inside level 4
+        if ((currentCollection.getLevelNum() + 1) >= 4)
+            return null;
 
         String defaultName = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(Calendar.getInstance().getTime());
         String defaultPath = currentCollection.getRelPath() + defaultName + "/";
@@ -30,5 +32,17 @@ public class MyPhoto {
         currentCollection.addMedia(newCollection);
 
         return newCollection;
+    }
+
+    public void refreshCurrentCollection(Integer id) {
+        //reset values that may [not] be reset in following method call
+        currentCollection.setHeadItem(null);
+        currentCollection.setTailItem(null);
+
+        DbAccess.getInstance().refreshCurrentCollection(currentCollection, id);
+
+        //reset values that aren't reset in previous method call
+        currentCollection.setNextItem(null);
+        currentCollection.setPreviusItem(null);
     }
 }

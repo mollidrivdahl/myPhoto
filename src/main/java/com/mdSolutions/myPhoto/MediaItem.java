@@ -4,8 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-public abstract class MediaItem {
+public abstract class MediaItem implements Serializable{
 
     @Getter @Setter protected String name;
     @Getter @Setter protected Integer id;
@@ -29,6 +30,18 @@ public abstract class MediaItem {
         this.isSelected = false;
     }
 
+    protected MediaItem(Integer id) {
+        this.name = "";
+        this.id = id;
+        this.relPath = "";
+        this.nextItem = null;
+        this.previusItem = null;
+        this.parentId = null;
+        this.parentCollectionPath = null;
+        this.levelNum = -1;
+        this.isSelected = false;
+    }
+
     protected MediaItem(String name, Integer id, String relPath, MediaItem nextItem, MediaItem previusItem,
                         Integer parentId, String parentCollectionPath, int levelNum) {
         this.name = name;
@@ -42,6 +55,6 @@ public abstract class MediaItem {
         this.isSelected = false;
     }
 
-    protected abstract BufferedImage view();
+    public abstract BufferedImage view();
 
 }

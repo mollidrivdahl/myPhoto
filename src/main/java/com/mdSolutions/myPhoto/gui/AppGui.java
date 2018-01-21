@@ -1,6 +1,7 @@
 package com.mdSolutions.myPhoto.gui;
 
 import com.mdSolutions.myPhoto.MediaCollection;
+import com.mdSolutions.myPhoto.MediaItem;
 import com.mdSolutions.myPhoto.MyPhoto;
 import lombok.Getter;
 import lombok.Setter;
@@ -58,7 +59,7 @@ public class AppGui {
         menuPanel.setBackground(Color.gray);
         menuPanel.setPreferredSize(new Dimension(MENU_WIDTH, MID_HEIGHT));
 
-        gridViewPanel = new JPanel(new MyFlowLayout(MyFlowLayout.LEADING, 25, 40));
+        gridViewPanel = new JPanel(new MyFlowLayout(MyFlowLayout.LEADING, 0, 40));
         gridViewPanel.setBackground(Color.black);
         gridViewPanel.setSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
         centerScrollPane = new JScrollPane(gridViewPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
@@ -89,28 +90,65 @@ public class AppGui {
         //--add "buttons" and "drop locations" to left menu panel
         initializeMenuPanel();
 
-        //--add "media items" to center panel
-        //for now, assuming no collections exists at root grid view level
-        //TODO: populateGridView(myPhoto.getCurrentCollection());
+        //--add root collection's "media items" to center panel
+        populateGridView(myPhoto.getCurrentCollection());
     }
 
-    void initializeMenuPanel() {
+    private void initializeMenuPanel() {
         //"create collection" button
         JButton btnCreateCollection = new JButton();
         btnCreateCollection.setText("<html>Create<br/>Collection</html>");
         btnCreateCollection.setPreferredSize(new Dimension(100, 50));
         btnCreateCollection.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //TODO: Follow UC 2 Scenario & Sequence Diagram
-                MediaCollection newCollection = myPhoto.createCollection();
+                MediaCollection newCollection;
 
+                if ((newCollection = myPhoto.createCollection()) != null) {
+                    appendToGridView(newCollection, myPhoto.getCurrentCollection().getListOfChildren().size());
+                    gridViewPanel.revalidate();
+                    gridViewPanel.repaint();
+                }
             }
         });
+
         menuPanel.add(btnCreateCollection);
     }
 
-    //TODO: Implement method
-    //private void populateGridView(MediaCollection gridViewCollection) {
-        //foreach gridViewCollection create new PanelDraggable(gridViewItem) and MediaItemDroppable(isCollection true or false)
-    //}
+    public void populateGridView(MediaCollection gridViewCollection) {
+        gridViewPanel.removeAll();
+
+        //TODO: change for in-order iteration to iterating from head to tail
+        for (int i = 0; i < gridViewCollection.getListOfChildren().size(); i++) {
+            appendToGridView(gridViewCollection.getListOfChildren().get(i), i);
+        }
+
+        gridViewPanel.revalidate();
+        gridViewPanel.repaint();
+    }
+
+    public void appendToGridView(MediaItem addedMediaItem, int index) {
+        boolean isCollection = addedMediaItem instanceof MediaCollection;
+
+        //create drop zone for media items
+        MediaItemDroppable dropZone = new MediaItemDroppable(isCollection);
+
+        //create draggable media item
+        PanelDraggable mediaItemPanel = new PanelDraggable(addedMediaItem, index);
+
+        //add thumbnail/cover photo to draggable media item
+        mediaItemPanel.displayImage(addedMediaItem.view());
+
+        //add draggable media item into center of drop zone
+        dropZone.add(mediaItemPanel);
+
+        //add drop zone (& draggable media item) to the grid cell
+        GridCell gridCell = new GridCell();
+        gridCell.addDropZone(dropZone);
+
+        //add name of media item to grid cell
+        gridCell.addItemName(addedMediaItem.getName());
+
+        //add grid cell to grid view
+        gridViewPanel.add(gridCell);
+    }
 }

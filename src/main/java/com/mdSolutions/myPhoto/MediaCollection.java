@@ -3,7 +3,10 @@ package com.mdSolutions.myPhoto;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 
 public class MediaCollection extends MediaItem {
@@ -15,7 +18,16 @@ public class MediaCollection extends MediaItem {
 
     public MediaCollection(){
         super();
-        coverPhotoPath = null;
+        coverPhotoPath = "";
+        listOfChildren = new ArrayList<MediaItem>();
+        headItem = null;
+        tailItem = null;
+    }
+
+    public MediaCollection(Integer id)
+    {
+        super(id);
+        coverPhotoPath = "";
         listOfChildren = new ArrayList<MediaItem>();
         headItem = null;
         tailItem = null;
@@ -30,10 +42,29 @@ public class MediaCollection extends MediaItem {
         tailItem = null;    //ADDED
     }
 
-    //TODO:Implement
     @Override
-    protected BufferedImage view() {
-        return null;
+    public BufferedImage view() {
+        BufferedImage originalImg;
+        BufferedImage coverPhotoImg = null;
+        int scaledWidth = 165;
+        int scaledHeight = 150;
+
+        try {
+            originalImg = ImageIO.read(new File(coverPhotoPath));
+
+            // creates output image
+            coverPhotoImg = new BufferedImage(scaledWidth, scaledHeight, originalImg.getType());
+
+            // scales the input image to the output image
+            Graphics2D g2d = coverPhotoImg.createGraphics();
+            g2d.drawImage(originalImg, 0, 0, scaledWidth, scaledHeight, null);
+            g2d.dispose();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        return coverPhotoImg;
     }
 
     public void addMedia(MediaItem newMedia) {          //ADDED

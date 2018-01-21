@@ -13,6 +13,24 @@ public class MediaItemDroppable extends PanelDroppable {
     public MediaItemDroppable(){
 
         super();
+        this.isCollection = false;
+
+        setPreferredSize(new Dimension(200, 176));
+        setBackground(AppGui.MY_PURPLE);
+        setLayout(new GridBagLayout());
+
+        //have it utilize a custom transfer handler
+        setTransferHandler(new MediaItemDroppable.MediaItemTransferHandler());
+    }
+
+    public MediaItemDroppable(boolean isCollection){
+
+        super();
+        this.isCollection = isCollection;
+
+        setPreferredSize(new Dimension(200, 176));
+        setBackground(Color.black);
+        setLayout(new GridBagLayout());
 
         //have it utilize a custom transfer handler
         setTransferHandler(new MediaItemDroppable.MediaItemTransferHandler());
@@ -27,10 +45,12 @@ public class MediaItemDroppable extends PanelDroppable {
             PanelDraggable destPanel = (PanelDraggable)t;   //Note: This is NOT the original instance that was dragged and dropped
 
             //TODO: get drop location and either reorganize items or move into collection
+            System.out.println(p.getLocation());
+
 
             //will refresh the ui for all the changes on any component (apparently)
-            revalidate();
-            repaint();
+            //revalidate();
+            //repaint();
 
             return true;
         }
