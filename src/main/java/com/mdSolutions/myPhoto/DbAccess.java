@@ -63,6 +63,10 @@ public class DbAccess {
             stmt.executeUpdate(String.format("INSERT INTO MediaItem (Id, Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum)" +
                     "VALUES (1, \'myPhotoLibrary\', \'myPhotoLibrary/\', null, null, null, 0);"));
             stmt.executeUpdate(String.format("INSERT INTO Collection (Id, CoverPhotoPath) VALUES (1, \'\');"));
+
+            //add 'myPhotoLibrary' directory to project folder, if doesn't exist
+            if (!MyPhoto.FileSystemAccess.fileExists("myPhotoLibrary"))
+                MyPhoto.FileSystemAccess.createDirectory("myPhotoLibrary");
         }
         catch (SQLException ex) {
             System.out.println(ex.getMessage());

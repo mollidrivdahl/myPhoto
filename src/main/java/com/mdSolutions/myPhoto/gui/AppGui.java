@@ -103,6 +103,7 @@ public class AppGui {
             public void actionPerformed(ActionEvent e) {
                 MediaCollection newCollection;
 
+                //if collection doesn't already exist and not creating within level 4
                 if ((newCollection = myPhoto.createCollection()) != null) {
                     appendToGridView(newCollection, myPhoto.getCurrentCollection().getListOfChildren().size());
                     gridViewPanel.revalidate();
