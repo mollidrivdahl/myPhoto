@@ -111,13 +111,27 @@ public class AppGui {
             }
         });
 
+        //"navigate up a level" button
+        JButton btnNavigateUp = new JButton();
+        btnNavigateUp.setText("\u21b0 Go Back Up");
+        btnNavigateUp.setPreferredSize(new Dimension(125, 25));
+        btnNavigateUp.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (myPhoto.getCurrentCollection().getId() != 1) {
+                    myPhoto.refreshCurrentCollection(myPhoto.getCurrentCollection().getParentId());
+                    populateGridView(myPhoto.getCurrentCollection());
+                }
+            }
+        });
+
         menuPanel.add(btnCreateCollection);
+        menuPanel.add(btnNavigateUp);
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {
         gridViewPanel.removeAll();
 
-        //TODO: change for in-order iteration to iterating from head to tail
+        //TODO: change from in-order iteration to iterating from head to tail
         for (int i = 0; i < gridViewCollection.getListOfChildren().size(); i++) {
             appendToGridView(gridViewCollection.getListOfChildren().get(i), i);
         }

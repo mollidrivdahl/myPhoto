@@ -19,7 +19,7 @@ public class MyPhoto {
         if ((currentCollection.getLevelNum() + 1) >= 4)
             return null;
 
-        String defaultName = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(Calendar.getInstance().getTime());
+        String defaultName = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss.SSS").format(Calendar.getInstance().getTime());
         String defaultPath = currentCollection.getRelPath() + defaultName + "/";
 
         MediaCollection newCollection = new MediaCollection(defaultName, -1, defaultPath, null,

@@ -38,8 +38,8 @@ public class MediaCollection extends MediaItem {
         super(name, id, relPath, nextItem, previusItem, parentId, parentCollectionPath, levelNum);
         this.coverPhotoPath = coverPhotoPath;
         this.listOfChildren = new ArrayList<MediaItem>();
-        headItem = null;    //ADDED
-        tailItem = null;    //ADDED
+        headItem = null;
+        tailItem = null;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class MediaCollection extends MediaItem {
         return coverPhotoImg;
     }
 
-    public void addMedia(MediaItem newMedia) {          //ADDED
+    public void addMedia(MediaItem newMedia) {
         if (listOfChildren.size() == 0) {
             headItem = newMedia;
             newMedia.previusItem = null;
@@ -88,7 +88,7 @@ public class MediaCollection extends MediaItem {
         listOfChildren.add(newMedia);
     }
 
-    //newMedia in correct order upon entering this method
+    //newMedia in correct order (from first to last index) upon entering this method
     public void addMedia(ArrayList<MediaItem> newMedia) {
         if (listOfChildren.size() == 0) {
             headItem = newMedia.get(0);
