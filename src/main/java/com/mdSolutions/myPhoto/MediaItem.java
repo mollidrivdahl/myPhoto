@@ -4,9 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public abstract class MediaItem implements Serializable{
+
+    //TODO: update supported types
+    static final String[] supportedPhotoTypes = new String[] { "jpg", "jpeg", "png" };
+    static final String[] supportedVideoTypes = new String[] { "mp4", "wav" };
 
     @Getter @Setter protected String name;
     @Getter @Setter protected Integer id;
@@ -56,5 +62,51 @@ public abstract class MediaItem implements Serializable{
     }
 
     public abstract BufferedImage view();
+
+    static MediaItem getConcreteType(String typeIndicator) {
+        if (typeIndicator.equals("Photo"))
+            return new PhotoMedia();
+        else if (typeIndicator.equals("Video"))
+            return new VideoMedia();
+        else if (typeIndicator.equals("Unsupported"))
+            return new UnsupportedMedia();
+        else
+            return new MediaCollection();
+    }
+
+    //TODO: implement
+    static MediaItem getConcreteType(File file) {
+        String name = file.getName();
+        String ext;
+
+        //extract extension from name
+        try {
+             ext = name.substring(name.lastIndexOf(".") + 1);
+        }
+        catch (Exception e) {
+            ext = null;
+        }
+
+        //check extension against supported types
+        if (ext != null) {
+            if (Arrays.asList(supportedPhotoTypes).contains(ext))
+                return new PhotoMedia();
+            else if (Arrays.asList(supportedVideoTypes).contains(ext))
+                return new VideoMedia();
+        }
+
+        return new UnsupportedMedia();
+    }
+
+    static String getConcreteType(MediaItem media) {
+        if (media instanceof MediaCollection)
+            return "Collection";
+        else if (media instanceof PhotoMedia)
+            return "Photo";
+        else if (media instanceof VideoMedia)
+            return "Video";
+        else
+            return "Unsupported";
+    }
 
 }

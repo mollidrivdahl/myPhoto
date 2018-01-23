@@ -3,12 +3,14 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MediaItem;
 import com.mdSolutions.myPhoto.MyPhoto;
+import javafx.embed.swing.JFXPanel;
 import lombok.Getter;
 import lombok.Setter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 public class AppGui {
 
@@ -99,16 +101,14 @@ public class AppGui {
         JButton btnCreateCollection = new JButton();
         btnCreateCollection.setText("<html>Create<br/>Collection</html>");
         btnCreateCollection.setPreferredSize(new Dimension(100, 50));
-        btnCreateCollection.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                MediaCollection newCollection;
+        btnCreateCollection.addActionListener(e -> {
+            MediaCollection newCollection;
 
-                //if collection doesn't already exist and not creating within level 4
-                if ((newCollection = myPhoto.createCollection()) != null) {
-                    appendToGridView(newCollection, myPhoto.getCurrentCollection().getListOfChildren().size());
-                    gridViewPanel.revalidate();
-                    gridViewPanel.repaint();
-                }
+            //if collection doesn't already exist and not creating within level 4
+            if ((newCollection = myPhoto.createCollection()) != null) {
+                appendToGridView(newCollection, myPhoto.getCurrentCollection().getListOfChildren().size());
+                gridViewPanel.revalidate();
+                gridViewPanel.repaint();
             }
         });
 
@@ -116,17 +116,29 @@ public class AppGui {
         JButton btnNavigateUp = new JButton();
         btnNavigateUp.setText("\u21b0 Go Back Up");
         btnNavigateUp.setPreferredSize(new Dimension(125, 25));
-        btnNavigateUp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (myPhoto.getCurrentCollection().getId() != 1) {
-                    myPhoto.refreshCurrentCollection(myPhoto.getCurrentCollection().getParentId());
-                    populateGridView(myPhoto.getCurrentCollection());
-                }
+        btnNavigateUp.addActionListener(e -> {
+            if (myPhoto.getCurrentCollection().getId() != 1) {
+                myPhoto.refreshCurrentCollection(myPhoto.getCurrentCollection().getParentId());
+                populateGridView(myPhoto.getCurrentCollection());
             }
+        });
+
+        JButton btnImport = new JButton();
+        btnImport.setText("<html>Import<br/>Media</html>");
+        btnImport.setPreferredSize(new Dimension(100, 37));
+        btnImport.addActionListener(e -> {
+            //TODO: change to importView
+
+            //TODO: provide option for either the browse file system OR drag n drop method of import
+            browseFileSystem();
+            populateGridView(myPhoto.getCurrentCollection());
+
+            //TODO: change back to gridView of root collection by clicking diff button
         });
 
         menuPanel.add(btnCreateCollection);
         menuPanel.add(btnNavigateUp);
+        menuPanel.add(btnImport);
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {
@@ -170,5 +182,28 @@ public class AppGui {
 
         //add grid cell to grid view
         gridViewPanel.add(gridCell);
+    }
+
+    public void browseFileSystem() {
+
+        JFrame explorerFrame = new JFrame();
+        JFileChooser c = new JFileChooser();
+
+        c.setFileSelectionMode(JFileChooser.FILES_ONLY);    //default, unnecessary
+        c.setMultiSelectionEnabled(true);
+        int userChoice = c.showDialog(explorerFrame, "Import...");
+
+        if (userChoice == JFileChooser.APPROVE_OPTION) {
+            File[] selectedFiles = c.getSelectedFiles();
+
+            for (int i = 0; i < selectedFiles.length; i++) {
+                System.out.println(selectedFiles[i].getAbsolutePath());
+            }
+
+            //copy files into myPhoto directory and follow import procedures
+            myPhoto.importMedia(selectedFiles);
+        }
+        else if (userChoice == JFileChooser.CANCEL_OPTION) { } //do nothing for now
+        else {} //JFileChooser.ERROR_OPTION, do nothing for now
     }
 }

@@ -82,7 +82,12 @@ public class MediaCollection extends MediaItem {
         newMedia.nextItem = null;
         newMedia.parentId = id;
         newMedia.parentCollectionPath = relPath;
-        newMedia.relPath = relPath + newMedia.name + "/";
+
+        if (newMedia instanceof MediaCollection)
+            newMedia.relPath = relPath + newMedia.name + "/";
+        else
+            newMedia.relPath = relPath + newMedia.name;
+
         newMedia.levelNum = levelNum + 1;
 
         listOfChildren.add(newMedia);

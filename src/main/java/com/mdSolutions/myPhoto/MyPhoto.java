@@ -4,7 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MyPhoto {
@@ -52,14 +55,42 @@ public class MyPhoto {
         currentCollection.setPreviusItem(null);
     }
 
-    public static class FileSystemAccess {
+    public void importMedia(File[] selectedFiles) {
+        //create new collection in root collection for importing the media items into
+        currentCollection = DbAccess.getInstance().getRootCollection();
+        MediaCollection newCollection = null;
 
-        public static boolean fileExists(String dirPath) {
-            return new File(dirPath).exists();
+        if ((newCollection = createCollection()) != null) { //TODO: figure out how to handle if this is untrue
+
+            for (File file : selectedFiles) {
+                //copy (import) file to new collection's directory in the file system
+                FileSystemAccess.copyForImport(file, newCollection.getRelPath());   //TODO: handle copying failing for some files
+
+                //determine concrete type & call constructor for that type
+                MediaItem newMedia = MediaItem.getConcreteType(file);
+                newMedia.setName(file.getName());
+
+                //add new MediaItem to the new collection
+                newCollection.addMedia(newMedia);
+            }
         }
 
-        public static File createDirectory(String newPath) {
-            File newDir = new File(newPath);
+        //append imported media to the new collection in database
+        DbAccess.getInstance().appendNewChildMedia(newCollection);
+    }
+
+
+    /**
+     * For non-gui related file system interaction
+     */
+    static class FileSystemAccess {
+
+        static boolean fileExists(String path) {
+            return new File(path).exists();
+        }
+
+        static File createDirectory(String newPath) {
+            File newDir = new File(newPath);    //newPath = path+dirName
 
             try {
                 if (newDir.mkdir())
@@ -70,6 +101,15 @@ public class MyPhoto {
             }
 
             return null;    //directory failed to be created
+        }
+
+        static void copyForImport(File importedFile, String destDirPath) {
+            try {
+                Files.copy(importedFile.toPath(), new File(destDirPath + importedFile.getName()).toPath());
+            }
+            catch (IOException ex) {
+                System.out.println(ex);
+            }
         }
     }
 }

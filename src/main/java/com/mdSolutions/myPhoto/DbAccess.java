@@ -1,5 +1,7 @@
 package com.mdSolutions.myPhoto;
 
+import javax.print.attribute.standard.Media;
+import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
@@ -7,7 +9,7 @@ import java.util.Hashtable;
 
 public class DbAccess {
 
-    private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INTEGER PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, NextItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, PrevItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, LevelNum INT NOT NULL );");
+    private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INTEGER PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, NextItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, PrevItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, LevelNum INT NOT NULL, MediaType VARCHAR(12) NOT NULL CHECK (MediaType IN ('Photo', 'Video', 'Unsupported', 'Collection')) );");
     private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INTEGER PRIMARY KEY REFERENCES MediaItem (Id) ON DELETE CASCADE, CoverPhotoPath VARCHAR(256) NOT NULL);");
 
     private static DbAccess _instance;
@@ -60,8 +62,8 @@ public class DbAccess {
             stmt = dbConnection.createStatement();
             stmt.executeUpdate(CREATE_TABLE_MEDIA_ITEM);
             stmt.executeUpdate(CREATE_TABLE_COLLECTION);
-            stmt.executeUpdate(String.format("INSERT INTO MediaItem (Id, Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum)" +
-                    "VALUES (1, \'myPhotoLibrary\', \'myPhotoLibrary/\', null, null, null, 0);"));
+            stmt.executeUpdate(String.format("INSERT INTO MediaItem (Id, Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum, MediaType)" +
+                    "VALUES (1, \'myPhotoLibrary\', \'myPhotoLibrary/\', null, null, null, 0, \'Collection\');"));
             stmt.executeUpdate(String.format("INSERT INTO Collection (Id, CoverPhotoPath) VALUES (1, \'\');"));
 
             //add 'myPhotoLibrary' directory to project folder, if doesn't exist
@@ -136,20 +138,33 @@ public class DbAccess {
                 MediaItem nextMedia = null;
 
                 if (curMedia == null) {
-                    //TODO: determine concrete type (don't assume it's a MediaCollection) (Add type indicator to database)
-                    curMedia = new MediaCollection(curItemId);
+                    //determine concrete type
+                    curMedia = MediaItem.getConcreteType(rs.getString("MediaType"));
+                    curMedia.setId(curItemId);
+
+                    //curMedia = new MediaCollection(curItemId);
                     tempItems.put(curItemId, curMedia);
                 }
 
                 if (prevItemId != null && ((prevMedia = tempItems.get(prevItemId)) == null) ) {
-                    //TODO: determine concrete type (don't assume it's a MediaCollection)
-                    prevMedia = new MediaCollection(prevItemId);
+                    //determine concrete type (don't assume it's a MediaCollection)
+                    Statement newQuery = dbConnection.createStatement();;
+                    ResultSet prevRs = newQuery.executeQuery(String.format("SELECT MediaType FROM MediaItem WHERE Id = " + prevItemId + ";"));
+                    prevMedia = MediaItem.getConcreteType(prevRs.getString("MediaType"));
+                    prevMedia.setId(prevItemId);
+
+                    //prevMedia = new MediaCollection(prevItemId);
                     tempItems.put(prevItemId, prevMedia);
                 }
 
                 if (nextItemId != null && ((nextMedia = tempItems.get(nextItemId)) == null) ) {
-                    //TODO: determine concrete type (don't assume it's a MediaCollection)
-                    nextMedia = new MediaCollection(nextItemId);
+                    //determine concrete type (don't assume it's a MediaCollection)
+                    Statement newQuery = dbConnection.createStatement();;
+                    ResultSet nextRs = newQuery.executeQuery(String.format("SELECT MediaType FROM MediaItem WHERE Id = " + nextItemId + ";"));
+                    nextMedia = MediaItem.getConcreteType(nextRs.getString("MediaType"));
+                    nextMedia.setId(nextItemId);
+
+                    //nextMedia = new MediaCollection(nextItemId);
                     tempItems.put(nextItemId, nextMedia);
                 }
 
@@ -178,7 +193,7 @@ public class DbAccess {
             }
 
             //copy media items from the temp hashtable to the currentCollections's listOfChildren
-            currentCollection.setListOfChildren(new ArrayList<MediaItem>(tempItems.values()));
+            currentCollection.setListOfChildren(new ArrayList<>(tempItems.values()));
         }
         catch (SQLException ex) {
             System.out.println(ex.getMessage());
@@ -189,6 +204,8 @@ public class DbAccess {
         }
     }
 
+    //Only adds the collection to the database, not the child media of the collection
+    //Child media should be added via appendNewChildMedia()
     public int addNewCollection(MediaCollection newCollection) {
         Statement stmt = null;
         int newId = -1;
@@ -199,13 +216,12 @@ public class DbAccess {
             stmt = dbConnection.createStatement();
 
             //insert new collection into db
-            stmt.executeUpdate(String.format("INSERT INTO MediaItem(Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum)" +
+            stmt.executeUpdate(String.format("INSERT INTO MediaItem(Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum, MediaType)" +
                     "VALUES(\'" + newCollection.getName() + "\',\'" + newCollection.getRelPath() + "\'," + newCollection.getParentId() +
-                    ", null ," + prevItemId + "," + newCollection.getLevelNum() + ");"));
+                    ", null ," + prevItemId + "," + newCollection.getLevelNum() + ", \'Collection\' );"));
 
             //retrieve value for id of newly inserted collection
             newId = stmt.getGeneratedKeys().getInt(1);
-            System.out.println("** rowId = " + newId + "**");
 
             //insert new collection into referencing table in db
             stmt.executeUpdate(String.format("INSERT INTO Collection(Id, CoverPhotoPath)" +
@@ -239,5 +255,83 @@ public class DbAccess {
         }
 
         return newId;
+    }
+
+    //as opposed to appendExistingChildMedia, where there won't be INSERT operations but rather updates
+    public void appendNewChildMedia(MediaCollection updatedCollection) {
+        Statement stmt = null;
+        Integer newId = -1;
+        Integer firstPrevId = null;
+
+        if (updatedCollection.getHeadItem() == null)
+            return;
+
+        try {
+            //get tail item of collection from database, if exists
+            stmt = dbConnection.createStatement();
+            ResultSet rs = stmt.executeQuery(String.format("SELECT Id FROM MediaItem WHERE ParentId = " + updatedCollection.getId() + " AND NextItemId = null;"));
+            if (rs.next()) {
+                firstPrevId = ((Integer)rs.getObject("Id"));
+            }
+
+            //**add head mediaItem to database with db tail id (or null) as its prevId and null as its nextId**
+            MediaItem head = updatedCollection.getHeadItem();
+
+            if (head instanceof MediaCollection) {
+                if (firstPrevId == null)
+                    head.setPreviusItem(null);
+                else
+                    head.setPreviusItem(new MediaCollection(firstPrevId));
+
+                //insert new collection into db
+                newId = addNewCollection((MediaCollection)head);
+            }
+            else {
+                //insert new media item into db
+                String prevItemId = (firstPrevId != null) ? firstPrevId.toString() : "null";
+                String type = MediaItem.getConcreteType(head);
+
+                stmt.executeUpdate(String.format("INSERT INTO MediaItem(Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum, MediaType)" +
+                        "VALUES(\'" + head.getName() + "\',\'" + head.getRelPath() + "\'," + head.getParentId() +
+                        ", null ," + prevItemId + "," + head.getLevelNum() + ", \'" + type + "\' );"));
+
+                //retrieve value for id of newly inserted media item
+                newId = stmt.getGeneratedKeys().getInt(1);
+
+                //update previous item in parent collection to point to new item as its next item
+                if (firstPrevId != null)
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + newId + " WHERE Id = " + firstPrevId + ";"));
+            }
+
+            //**continue looping from head+1 to tail**
+            String prevItemId = newId.toString();
+            MediaItem travel = head.getNextItem();
+
+            while (travel != null) {
+                if (travel instanceof MediaCollection)
+                    newId = addNewCollection((MediaCollection)travel);
+                else {
+                    //add to db with nextId always null
+                    String type = MediaItem.getConcreteType(travel);
+
+                    stmt.executeUpdate(String.format("INSERT INTO MediaItem(Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum, MediaType)" +
+                            "VALUES(\'" + travel.getName() + "\',\'" + travel.getRelPath() + "\'," + travel.getParentId() +
+                            ", null ," + prevItemId + "," + travel.getLevelNum() + ", \'" + type + "\' );"));
+
+                    //retrieve value for id of newly inserted media item
+                    newId = stmt.getGeneratedKeys().getInt(1);
+
+                    //update previous item in parent collection to point to new item as its next item
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + newId + " WHERE Id = " + prevItemId + ";"));
+
+                    prevItemId = newId.toString();
+                    travel = travel.getNextItem();
+                }
+            }
+
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
     }
 }

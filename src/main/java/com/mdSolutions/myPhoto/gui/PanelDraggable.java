@@ -50,6 +50,7 @@ public class PanelDraggable extends JPanel implements Transferable,
         originalIndex = index;
         this.index = originalIndex;
 
+        setLayout(new GridBagLayout());
         setPreferredSize(new Dimension(176, 176));
         setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_BLUE));
 
@@ -57,6 +58,9 @@ public class PanelDraggable extends JPanel implements Transferable,
     }
 
     public void displayImage(BufferedImage image) {
+        if (image == null)
+            return;
+
         ImageIcon icon = new ImageIcon(image);
         JLabel iconLabel = new JLabel();
         iconLabel.setIcon(icon);
