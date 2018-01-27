@@ -9,6 +9,7 @@ import java.awt.datatransfer.Transferable;
 public class MediaItemDroppable extends PanelDroppable {
 
     @Getter @Setter private boolean isCollection;   //TODO: Find better way to determine the drop zone type
+    private PanelDraggable panelDraggable;
 
     public MediaItemDroppable(){
 
@@ -34,6 +35,17 @@ public class MediaItemDroppable extends PanelDroppable {
 
         //have it utilize a custom transfer handler
         setTransferHandler(new MediaItemDroppable.MediaItemTransferHandler());
+    }
+
+    @Override
+    public void addPanelDraggable(PanelDraggable panelDraggable) {
+        this.panelDraggable = panelDraggable;
+        add(panelDraggable);
+    }
+
+    @Override
+    public PanelDraggable getPanelDraggable() {
+        return panelDraggable;
     }
 
     class MediaItemTransferHandler extends MyTransferHandler {

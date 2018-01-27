@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -25,6 +26,7 @@ public class PanelDraggable extends JPanel implements Transferable,
 
     //marks this JPanel as the source of the Drag
     private DragSource source;
+    private Border border;
     @Getter @Setter private MediaItem mediaItem;
     @Getter @Setter private int index;
     @Getter @Setter private int originalIndex;
@@ -37,7 +39,7 @@ public class PanelDraggable extends JPanel implements Transferable,
         originalIndex = -1;
         index = originalIndex;
         setPreferredSize(new Dimension(176, 176));
-        setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_BLUE));
+        setBorder(border = BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_BLUE));
 
         addMouseListener(initializeMouseListener());
     }
@@ -52,8 +54,13 @@ public class PanelDraggable extends JPanel implements Transferable,
 
         setLayout(new GridBagLayout());
         setPreferredSize(new Dimension(176, 176));
-        setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_BLUE));
 
+        if (mediaItem instanceof MediaCollection)
+            border = BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_PURPLE);
+        else
+            border = BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_BLUE);
+
+        setBorder(border);
         addMouseListener(initializeMouseListener());
     }
 
@@ -67,17 +74,33 @@ public class PanelDraggable extends JPanel implements Transferable,
         add(iconLabel);
     }
 
+    public void resetBorder() {
+        setBorder(border);
+    }
+
     public MouseListener initializeMouseListener () {
         MouseListener mouseListener = new MouseListener() {
             public void mouseClicked(MouseEvent e) {
-                //TODO: mark as selected on single click
+                if (AppGui.getInstance().isMultiSelect())
+                {
+                    //toggle selected on single click
+                    if (!mediaItem.isSelected()) {
+                        mediaItem.setSelected(true);
+                        setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, AppGui.MY_GLOW));
+                    }
+                    else {
+                        mediaItem.setSelected(false);
+                        setBorder(border);
+                    }
+                }
+                else {
+                    //double click only allowed when multi select is disabled
+                    if (e.getClickCount() == 2 && !e.isConsumed()) {
+                        e.consume();
 
-                //double click
-                if (e.getClickCount() == 2 && !e.isConsumed()) {
-                    e.consume();
-
-                    if (mediaItem instanceof MediaCollection)
-                        navigateIntoCollection();
+                        if (mediaItem instanceof MediaCollection)
+                            navigateIntoCollection();
+                    }
                 }
             }
 

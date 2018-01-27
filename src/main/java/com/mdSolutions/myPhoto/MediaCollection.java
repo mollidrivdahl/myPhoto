@@ -108,4 +108,10 @@ public class MediaCollection extends MediaItem {
         //TODO: iterate through newMedia connecting pointers and adjusting relPath, parentId, parentCollectionPath, levelNum
         //TODO: last item in newMedia should point to null and become new tailItem
     }
+
+    public void unselectAllChildren() {
+        for (MediaItem item: listOfChildren) {
+            item.isSelected = false;
+        }
+    }
 }

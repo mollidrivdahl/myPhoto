@@ -24,9 +24,11 @@ public class AppGui {
     public static final Color MY_PURPLE = new Color(119, 21, 165);
     public static final Color MY_RED = new Color(242, 33, 65);
     public static final Color MY_BLUE = new Color(3, 147, 155);
+    public static final Color MY_GLOW = new Color(203, 205, 145);
 
 
     private static AppGui _instance;
+    @Getter @Setter private boolean isMultiSelect;
     @Getter @Setter private MyPhoto myPhoto;
     @Getter @Setter private JPanel windowPanel;
     @Getter @Setter private JPanel topPanel;
@@ -38,6 +40,7 @@ public class AppGui {
 
     public AppGui() {
         myPhoto = new MyPhoto();
+        isMultiSelect = false;
         createPanels();
         initializePanels();
     }
@@ -136,9 +139,26 @@ public class AppGui {
             //TODO: change back to gridView of root collection by clicking diff button
         });
 
+        JCheckBox checkMultiSelect = new JCheckBox();
+        checkMultiSelect.setText("Multi Select");
+        checkMultiSelect.setPreferredSize(new Dimension(100, 25));
+        checkMultiSelect.addActionListener(e -> {
+            if (!isMultiSelect){
+                isMultiSelect = true;
+            }
+            else {
+                isMultiSelect = false;
+                myPhoto.getCurrentCollection().unselectAllChildren();
+                for (Component gridCell : gridViewPanel.getComponents()) {
+                    ((GridCell)gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
+                }
+            }
+        });
+
         menuPanel.add(btnCreateCollection);
         menuPanel.add(btnNavigateUp);
         menuPanel.add(btnImport);
+        menuPanel.add(checkMultiSelect);
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {
@@ -171,7 +191,7 @@ public class AppGui {
         mediaItemPanel.displayImage(addedMediaItem.view());
 
         //add draggable media item into center of drop zone
-        dropZone.add(mediaItemPanel);
+        dropZone.addPanelDraggable(mediaItemPanel);
 
         //add drop zone (& draggable media item) to the grid cell
         GridCell gridCell = new GridCell();
