@@ -334,4 +334,36 @@ public class DbAccess {
             System.out.println(ex);
         }
     }
+
+    public void updateChildMedia(MediaCollection currentCollection) {
+        //update next and previous id's of each item in collection, from head to tail
+        MediaItem travel = currentCollection.getHeadItem();
+        String nextId = "null";
+        String prevId = "null";
+        Statement stmt = null;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            while (travel != null) {
+                //TODO: REMOVE temp checks that verify head item's prev is null, and tail item's next is null
+                if (travel == currentCollection.getHeadItem() && currentCollection.getHeadItem().getPreviusItem() != null)
+                    System.out.println("LOG: error - head's previous is not null");
+                if (travel == currentCollection.getTailItem() && currentCollection.getTailItem().getNextItem() != null)
+                    System.out.println("LOG: error - tail's next is not null");
+
+                nextId = travel.getNextItem() == null ? "null" : travel.getNextItem().getId().toString();
+                prevId = travel.getPreviusItem() == null ? "null" : travel.getPreviusItem().getId().toString();
+
+                stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + nextId + " , PrevItemId = "
+                        + prevId + " WHERE Id = " + travel.getId() + ";"));
+
+                travel = travel.getNextItem();
+            }
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
+
+    }
 }

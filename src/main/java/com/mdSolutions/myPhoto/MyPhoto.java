@@ -81,7 +81,7 @@ public class MyPhoto {
 
     public void organizeManually(MediaItem leftConnection, MediaItem rightConnection) {
         currentCollection.organizeManually(leftConnection, rightConnection);
-        //TODO: dbAccess.getInstance().updateChildMedia(currentCollection);
+        DbAccess.getInstance().updateChildMedia(currentCollection);
     }
 
 

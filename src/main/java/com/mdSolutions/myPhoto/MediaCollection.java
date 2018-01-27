@@ -122,8 +122,8 @@ public class MediaCollection extends MediaItem {
         MediaItem priorSelected = null;
         MediaItem firstNonSelectedAfterFirstSelected = null;
         MediaItem lastNonSelectedBeforePriorSelected = null;
-        MediaItem firstNonSelectedAfterRightCollection = null;
-        MediaItem lastNonSelectedBeforeLeftCollection = null;
+        MediaItem firstNonSelectedAfterRightConnection = null;
+        MediaItem lastNonSelectedBeforeLeftConnection = null;
         boolean passedRightCollection = false;
 
         while (travel != null) {
@@ -131,7 +131,7 @@ public class MediaCollection extends MediaItem {
                 lastNonSelectedBeforePriorSelected = travel.previusItem;
 
                 if (travel == leftConnection)
-                    lastNonSelectedBeforeLeftCollection = travel.previusItem;
+                    lastNonSelectedBeforeLeftConnection = travel.previusItem;
 
                 //connect the non-selected items
                 if (travel.previusItem != null) {
@@ -161,8 +161,8 @@ public class MediaCollection extends MediaItem {
 
             if (travel == rightConnection)
                 passedRightCollection = true;
-            else if (passedRightCollection && !travel.isSelected && firstNonSelectedAfterRightCollection == null)
-                firstNonSelectedAfterRightCollection = travel;
+            else if (passedRightCollection && !travel.isSelected && firstNonSelectedAfterRightConnection == null)
+                firstNonSelectedAfterRightConnection = travel;
 
             travel = travel.nextItem;   //next is still the next item in the original order
         }
@@ -171,13 +171,13 @@ public class MediaCollection extends MediaItem {
         if (firstSelected == rightConnection)
             rightConnection = firstNonSelectedAfterFirstSelected;
         else if (rightConnection != null && rightConnection.isSelected)
-            rightConnection = firstNonSelectedAfterRightCollection;
+            rightConnection = firstNonSelectedAfterRightConnection;
 
         //find last non-selected left connection
         if (priorSelected == leftConnection)
             leftConnection = lastNonSelectedBeforePriorSelected;
         else if (leftConnection != null && leftConnection.isSelected)
-            leftConnection = lastNonSelectedBeforeLeftCollection;
+            leftConnection = lastNonSelectedBeforeLeftConnection;
 
         //rearrange selected items between the left and right connections items
         if (firstSelected != null) {
