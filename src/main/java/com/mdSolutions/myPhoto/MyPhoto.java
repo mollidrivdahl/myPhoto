@@ -79,6 +79,11 @@ public class MyPhoto {
         DbAccess.getInstance().appendNewChildMedia(newCollection);
     }
 
+    public void organizeManually(MediaItem leftConnection, MediaItem rightConnection) {
+        currentCollection.organizeManually(leftConnection, rightConnection);
+        //TODO: dbAccess.getInstance().updateChildMedia(currentCollection);
+    }
+
 
     /**
      * For non-gui related file system interaction

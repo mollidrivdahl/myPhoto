@@ -151,11 +151,17 @@ public class PanelDraggable extends JPanel implements Transferable,
 
     //when the drag finishes,
     public void dragDropEnd(DragSourceDropEvent dsde) {
-        //TODO: always mark as unselected once drop ends? Or do that elsewhere?
+        //if not multi-select and not a successful drop
+        if (!AppGui.getInstance().isMultiSelect() && !dsde.getDropSuccess()) {
+            mediaItem.setSelected(false);
+            setBorder(border);
+        }
     }
 
     //when a DragGesture is recognized, initiate the Drag
     public void dragGestureRecognized(DragGestureEvent dge) {
+        mediaItem.setSelected(true);
+        setBorder(BorderFactory.createMatteBorder(5,5,5,5, AppGui.MY_GLOW));
         source.startDrag(dge, DragSource.DefaultCopyDrop, this, this);
     }
 

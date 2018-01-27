@@ -179,10 +179,8 @@ public class AppGui {
     }
 
     public void appendToGridView(MediaItem addedMediaItem, int index) {
-        boolean isCollection = addedMediaItem instanceof MediaCollection;
-
         //create drop zone for media items
-        MediaItemDroppable dropZone = new MediaItemDroppable(isCollection);
+        MediaItemDroppable dropZone = new MediaItemDroppable();
 
         //create draggable media item
         PanelDraggable mediaItemPanel = new PanelDraggable(addedMediaItem, index);
