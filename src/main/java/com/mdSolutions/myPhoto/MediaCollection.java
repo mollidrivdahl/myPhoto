@@ -8,7 +8,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class MediaCollection extends MediaItem {
 
@@ -220,5 +224,111 @@ public class MediaCollection extends MediaItem {
 
         //unselect all items
         unselectAllChildren();
+    }
+
+    public void organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY format) {
+        ArrayList<MediaItem> tempReorder = null;
+        Comparator<MediaItem> compareName = Comparator.comparing(MediaItem::getName);
+
+        switch (format){
+            case NAME_ASCENDING:
+            {
+                tempReorder = new ArrayList<>(listOfChildren);
+                tempReorder.sort(compareName);
+                clearChildrenAndReorder(tempReorder, true);
+                break;
+            }
+            case NAME_DESCENDING:
+            {
+                tempReorder = new ArrayList<>(listOfChildren);
+                tempReorder.sort(compareName);
+                clearChildrenAndReorder(tempReorder, false);
+                break;
+            }
+            case COLLECTIONS_FIRST:
+            {
+                //ordered collections -> photos -> videos -> unsupported
+                tempReorder = new ArrayList<>();
+                listOfChildren.stream().filter(i -> i instanceof MediaCollection).forEach(tempReorder::add);
+                listOfChildren.stream().filter(i -> i instanceof PhotoMedia).forEach(tempReorder::add);
+                listOfChildren.stream().filter(i -> i instanceof VideoMedia).forEach(tempReorder::add);
+                listOfChildren.stream().filter(i -> i instanceof UnsupportedMedia).forEach(tempReorder::add);
+
+                clearChildrenAndReorder(tempReorder, true);
+                break;
+            }
+            case COLLECTIONS_LAST:
+            {
+                //ordered photos -> videos -> unsupported -> collections
+                tempReorder = new ArrayList<>();
+                listOfChildren.stream().filter(i -> i instanceof PhotoMedia).forEach(tempReorder::add);
+                listOfChildren.stream().filter(i -> i instanceof VideoMedia).forEach(tempReorder::add);
+                listOfChildren.stream().filter(i -> i instanceof UnsupportedMedia).forEach(tempReorder::add);
+                listOfChildren.stream().filter(i -> i instanceof MediaCollection).forEach(tempReorder::add);
+
+                clearChildrenAndReorder(tempReorder, true);
+                break;
+            }
+        }
+    }
+
+    private void clearChildrenAndReorder(ArrayList<MediaItem> sortedItems, boolean isForwardSort) {
+        listOfChildren.clear();
+        headItem = null;
+        tailItem = null;
+
+        //iterate in order, adding items to listOfChildren and connecting next and previous items
+        if (isForwardSort) {
+            for (int i = 0; i < sortedItems.size(); i++)
+            {
+                MediaItem curMedia = sortedItems.get(i);
+                System.out.println(curMedia.getName());
+
+                if (i == 0) {
+                    headItem = curMedia;
+                    curMedia.previusItem = null;
+                    curMedia.nextItem = (i != sortedItems.size() - 1) ? sortedItems.get(i + 1) : null;
+                }
+                else if (i == sortedItems.size() - 1) {
+                    tailItem = curMedia;
+                    curMedia.nextItem = null;
+                    curMedia.previusItem = (i != 0) ? sortedItems.get(i - 1) : null;
+                }
+                else {
+                    curMedia.nextItem = sortedItems.get(i + 1);
+                    curMedia.previusItem = sortedItems.get(i - 1);
+                }
+
+                listOfChildren.add(curMedia);
+            }
+        }
+        //iterate in backwards order, adding items to listOfChildren and connecting next and previous items
+        else {
+            for (int i = sortedItems.size() - 1; i >= 0; i--) {
+                MediaItem curMedia = sortedItems.get(i);
+                System.out.println(sortedItems.get(i).getName());
+
+                if (i == sortedItems.size() - 1) {
+                    headItem = curMedia;
+                    curMedia.previusItem = null;
+                    curMedia.nextItem = (i != 0) ? sortedItems.get(i - 1) : null;
+                }
+                else if (i == 0) {
+                    tailItem = curMedia;
+                    curMedia.nextItem = null;
+                    curMedia.previusItem = (i != sortedItems.size() - 1) ? sortedItems.get(i + 1) : null;
+                }
+                else {
+                    curMedia.nextItem = sortedItems.get(i - 1);
+                    curMedia.previusItem = sortedItems.get(i + 1);
+                }
+
+                listOfChildren.add(curMedia);
+            }
+        }
+    }
+
+    private void processStream(MediaItem item, ArrayList<MediaItem> tempReorder) {
+        tempReorder.add(item);
     }
 }

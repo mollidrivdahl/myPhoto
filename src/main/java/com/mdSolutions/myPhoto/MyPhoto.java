@@ -9,9 +9,12 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Properties;
 
 public class MyPhoto {
 
+    public enum AUTO_ORGANIZE_BY { NAME_ASCENDING, NAME_DESCENDING, COLLECTIONS_FIRST, COLLECTIONS_LAST}
     @Getter @Setter MediaCollection currentCollection;
 
     public MyPhoto() {
@@ -84,6 +87,10 @@ public class MyPhoto {
         DbAccess.getInstance().updateChildMedia(currentCollection);
     }
 
+    public void organizeAutomatically(AUTO_ORGANIZE_BY format) {
+        currentCollection.organizeAutomatically(format);
+        DbAccess.getInstance().updateChildMedia(currentCollection);
+    }
 
     /**
      * For non-gui related file system interaction

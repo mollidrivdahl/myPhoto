@@ -3,13 +3,11 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MediaItem;
 import com.mdSolutions.myPhoto.MyPhoto;
-import javafx.embed.swing.JFXPanel;
 import lombok.Getter;
 import lombok.Setter;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 
 public class AppGui {
@@ -126,6 +124,7 @@ public class AppGui {
             }
         });
 
+        //"import media" button
         JButton btnImport = new JButton();
         btnImport.setText("<html>Import<br/>Media</html>");
         btnImport.setPreferredSize(new Dimension(100, 37));
@@ -139,6 +138,7 @@ public class AppGui {
             //TODO: change back to gridView of root collection by clicking diff button
         });
 
+        //"multi select" checkbox
         JCheckBox checkMultiSelect = new JCheckBox();
         checkMultiSelect.setText("Multi Select");
         checkMultiSelect.setPreferredSize(new Dimension(100, 25));
@@ -155,10 +155,40 @@ public class AppGui {
             }
         });
 
+        //"organize automatically" label, dropdown combo box, and go button
+        JLabel labelAutoOrganize = new JLabel("<html>Auto<br/>Organize:</html>");
+        labelAutoOrganize.setPreferredSize(new Dimension(55, 40));
+        String[] organizationTypes = {"Name Ascending", "Name Descending", "Collections First", "Collections Last"};
+        JComboBox<String> cbAutoOrganize = new JComboBox<>(organizationTypes);
+        JButton btnAutoOrganize = new JButton("Go");
+        btnAutoOrganize.setPreferredSize(new Dimension(30, 25));
+        btnAutoOrganize.setMargin(new Insets(2,2,2,2));
+        btnAutoOrganize.addActionListener(e -> {
+            int confirmResult = JOptionPane.showConfirmDialog(null,
+                    "Are you sure you want to re-organize automatically? All manual organization changes will be removed.",
+                    "Warning", JOptionPane.YES_NO_OPTION );
+
+            if (confirmResult == JOptionPane.YES_OPTION) {
+                if (cbAutoOrganize.getSelectedIndex() == 0)
+                    myPhoto.organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY.NAME_ASCENDING);
+                else if (cbAutoOrganize.getSelectedIndex() == 1)
+                    myPhoto.organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY.NAME_DESCENDING);
+                else if (cbAutoOrganize.getSelectedIndex() == 2)
+                    myPhoto.organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY.COLLECTIONS_FIRST);
+                else
+                    myPhoto.organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY.COLLECTIONS_LAST);
+            }
+
+            populateGridView(myPhoto.getCurrentCollection());
+        });
+
         menuPanel.add(btnCreateCollection);
         menuPanel.add(btnNavigateUp);
         menuPanel.add(btnImport);
         menuPanel.add(checkMultiSelect);
+        menuPanel.add(labelAutoOrganize);
+        menuPanel.add(cbAutoOrganize);
+        menuPanel.add(btnAutoOrganize);
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {

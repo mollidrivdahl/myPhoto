@@ -84,7 +84,7 @@ public class MediaItemDroppable extends PanelDroppable {
                 }
             }
 
-            //TODO: find way to uncheck the multi-select JCheckBox also
+            //TODO: find way to uncheck the multi-select JCheckBox also to uncomment following line
             //AppGui.getInstance().setMultiSelect(false);
 
             //will refresh the ui for all the changes on any component (apparently)
