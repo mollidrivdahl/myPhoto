@@ -1,14 +1,9 @@
 package com.mdSolutions.myPhoto.gui;
 
-import com.mdSolutions.myPhoto.App;
 import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MediaItem;
-import jdk.nashorn.internal.scripts.JO;
-import lombok.Getter;
-import lombok.Setter;
 
 import javax.activity.InvalidActivityException;
-import javax.print.attribute.standard.Media;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
@@ -80,16 +75,14 @@ public class MediaItemDroppable extends PanelDroppable {
         }
 
         try {
-            AppGui.getInstance().getMyPhoto().moveMedia((MediaCollection)panelDraggable.getMediaItem());
+            AppGui.getInstance().getMyPhoto().moveMediaIn((MediaCollection)panelDraggable.getMediaItem());
+
+            //repopulate the grid view
+            AppGui.getInstance().populateGridView(AppGui.getInstance().getMyPhoto().getCurrentCollection());
         }
         catch (InvalidActivityException ex) {
-            JOptionPane.showMessageDialog(null,
-                    ex.getMessage());
-            return;
+            JOptionPane.showMessageDialog(null, ex.getMessage());
         }
-
-        //repopulate the grid view
-        AppGui.getInstance().populateGridView(AppGui.getInstance().getMyPhoto().getCurrentCollection());
     }
 
     class MediaItemTransferHandler extends MyTransferHandler {
@@ -107,22 +100,10 @@ public class MediaItemDroppable extends PanelDroppable {
             else if (panelDraggable.getMediaItem() instanceof MediaCollection) {
                 System.out.println("move into collection zone");
                 handleMovementInto();
-
-                /*System.out.println("move into collection zone -- UNIMPLEMENTED");
-
-                //TODO: remove
-                AppGui.getInstance().getMyPhoto().getCurrentCollection().unselectAllChildren();
-                for (Component gridCell : AppGui.getInstance().getGridViewPanel().getComponents()) {
-                    ((GridCell)gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
-                }*/
             }
 
             //TODO: find way to uncheck the multi-select JCheckBox also to uncomment following line
             //AppGui.getInstance().setMultiSelect(false);
-
-            //will refresh the ui for all the changes on any component (apparently)
-            //revalidate();
-            //repaint();
 
             return true;
         }

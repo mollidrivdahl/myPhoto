@@ -90,7 +90,7 @@ public class MyPhoto {
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
-    public void moveMedia(MediaCollection destCollection) throws InvalidActivityException {
+    public void moveMediaIn(MediaCollection destCollection) throws InvalidActivityException {
         boolean preventAction = false;
 
         //TODO: check if any [nested] collections would be moved into level 4 & prevent action
@@ -100,6 +100,18 @@ public class MyPhoto {
             throw new InvalidActivityException("Cannot move media - one or more [nested] collections would be moved down to level 4");
 
         currentCollection.moveMedia(destCollection);
+        //DbAccess.getInstance().appendExistingChildMedia(destCollection);
+        //DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
+    }
+
+    public void moveMediaOut() throws InvalidActivityException {
+        if (currentCollection.getLevelNum() == 0)
+            throw new InvalidActivityException("Cannot move media up - this is the root collection");
+
+        //retrieve currentCollection's parent details (just not the parent's list of children)
+        MediaCollection parentCollection = DbAccess.getInstance().getMediaById(currentCollection.getParentId());
+
+        currentCollection.moveMedia(parentCollection);
         //DbAccess.getInstance().appendExistingChildMedia(destCollection);
         //DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }

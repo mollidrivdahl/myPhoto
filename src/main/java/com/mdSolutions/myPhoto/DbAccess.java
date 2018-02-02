@@ -204,6 +204,44 @@ public class DbAccess {
         }
     }
 
+    //Note: Gets details about the media item except for: children, head, tail, next, or previous
+    public MediaCollection getMediaById(Integer id) {
+        MediaCollection requestedCollection = new MediaCollection();
+
+        Statement query = null;
+        String queryStr = String.format("SELECT * FROM MediaItem JOIN Collection ON MediaItem.Id = Collection.Id WHERE MediaItem.Id = " + id + ";");
+
+        try {
+            query = dbConnection.createStatement();
+            ResultSet rs = query.executeQuery(queryStr);
+
+            while (rs.next()) { //should only loop once (only one collection with requested id)
+                requestedCollection.setId((Integer)rs.getObject("Id"));
+                requestedCollection.setName(rs.getString("Name"));
+                requestedCollection.setRelPath(rs.getString("RelPath"));
+                requestedCollection.setParentId((Integer)rs.getObject("ParentId"));
+                requestedCollection.setLevelNum(rs.getInt("LevelNum"));
+                requestedCollection.setCoverPhotoPath(rs.getString("CoverPhotoPath"));
+            }
+
+            //query for parent collection path
+            if (requestedCollection.getParentId() != null) {
+                queryStr = String.format("SELECT RelPath FROM MediaItem WHERE Id = " + requestedCollection.getParentId() + ";");
+                rs = query.executeQuery(queryStr);
+                requestedCollection.setParentCollectionPath(rs.getString("RelPath"));
+            }
+        }
+        catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        }
+        finally {
+            if (query != null)
+                try { query.close(); } catch (SQLException ex) {}
+        }
+
+        return requestedCollection;
+    }
+
     //Only adds the collection to the database, not the child media of the collection
     //Child media should be added via appendNewChildMedia()
     public int addNewCollection(MediaCollection newCollection) {
@@ -364,6 +402,10 @@ public class DbAccess {
     //as opposed to appendNewChildMedia, where there aren't update operations but rather inserts
     public void appendExistingChildMedia(MediaItem destCollection) {
         //TODO: Implement
+
+        //TODO: apply appropriate behavior if destCollection is level 0 or level 4
+            //level 0 check for stand-alone and create new collection and add to collection
+            //level 4 check for collections and separate into stand alone media - BUT should not be allowed (for now)
 
     }
 }

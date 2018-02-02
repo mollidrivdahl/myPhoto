@@ -6,6 +6,7 @@ import com.mdSolutions.myPhoto.MyPhoto;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.activity.InvalidActivityException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -177,9 +178,23 @@ public class AppGui {
                     myPhoto.organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY.COLLECTIONS_FIRST);
                 else
                     myPhoto.organizeAutomatically(MyPhoto.AUTO_ORGANIZE_BY.COLLECTIONS_LAST);
-            }
 
-            populateGridView(myPhoto.getCurrentCollection());
+                populateGridView(myPhoto.getCurrentCollection());
+            }
+        });
+
+        //"move media out of collection" button
+        JButton btnMoveUp = new JButton();
+        btnMoveUp.setText("Move Media Up");
+        btnMoveUp.setPreferredSize(new Dimension(150, 25));
+        btnMoveUp.addActionListener(e -> {
+            try {
+                myPhoto.moveMediaOut();
+                populateGridView(myPhoto.getCurrentCollection());
+            }
+            catch (InvalidActivityException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage());
+            }
         });
 
         menuPanel.add(btnCreateCollection);
@@ -189,6 +204,7 @@ public class AppGui {
         menuPanel.add(labelAutoOrganize);
         menuPanel.add(cbAutoOrganize);
         menuPanel.add(btnAutoOrganize);
+        menuPanel.add(btnMoveUp);
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {
