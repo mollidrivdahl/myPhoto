@@ -3,9 +3,11 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.App;
 import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MediaItem;
+import jdk.nashorn.internal.scripts.JO;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.activity.InvalidActivityException;
 import javax.print.attribute.standard.Media;
 import javax.swing.*;
 import java.awt.*;
@@ -43,7 +45,7 @@ public class MediaItemDroppable extends PanelDroppable {
         MediaItem leftConnection = null;
         MediaItem rightConnection = null;
 
-        //determine left and right connections
+        //determine left and right (destination) connections
         if (p.getX() < 10) {
             //this drop target is the rightward connection
             rightConnection = panelDraggable.getMediaItem();
@@ -62,6 +64,34 @@ public class MediaItemDroppable extends PanelDroppable {
         AppGui.getInstance().populateGridView(AppGui.getInstance().getMyPhoto().getCurrentCollection());
     }
 
+    private void handleMovementInto() {
+        MediaItem destCollection = panelDraggable.getMediaItem();
+
+        //if dropped media on a non-collection item
+        if (!(destCollection instanceof MediaCollection)) {
+            JOptionPane.showMessageDialog(null,
+                    "Cannot move media - destination item must be a collection");
+            return;
+        }
+        else if (destCollection.isSelected()) {
+            JOptionPane.showMessageDialog(null,
+                    "Cannot move media - destination collection cannot be selected");
+            return;
+        }
+
+        try {
+            AppGui.getInstance().getMyPhoto().moveMedia((MediaCollection)panelDraggable.getMediaItem());
+        }
+        catch (InvalidActivityException ex) {
+            JOptionPane.showMessageDialog(null,
+                    ex.getMessage());
+            return;
+        }
+
+        //repopulate the grid view
+        AppGui.getInstance().populateGridView(AppGui.getInstance().getMyPhoto().getCurrentCollection());
+    }
+
     class MediaItemTransferHandler extends MyTransferHandler {
         //execute desired operations with imported data upon dropping
         @Override
@@ -75,13 +105,16 @@ public class MediaItemDroppable extends PanelDroppable {
             }
             //dropped in the "move media into collection" zone
             else if (panelDraggable.getMediaItem() instanceof MediaCollection) {
-                System.out.println("move into collection zone -- UNIMPLEMENTED");
+                System.out.println("move into collection zone");
+                handleMovementInto();
+
+                /*System.out.println("move into collection zone -- UNIMPLEMENTED");
 
                 //TODO: remove
                 AppGui.getInstance().getMyPhoto().getCurrentCollection().unselectAllChildren();
                 for (Component gridCell : AppGui.getInstance().getGridViewPanel().getComponents()) {
                     ((GridCell)gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
-                }
+                }*/
             }
 
             //TODO: find way to uncheck the multi-select JCheckBox also to uncomment following line

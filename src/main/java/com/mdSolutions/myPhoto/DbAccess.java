@@ -257,7 +257,7 @@ public class DbAccess {
         return newId;
     }
 
-    //as opposed to appendExistingChildMedia, where there won't be INSERT operations but rather updates
+    //as opposed to appendExistingChildMedia, where there aren't insert operations but rather updates
     public void appendNewChildMedia(MediaCollection updatedCollection) {
         Statement stmt = null;
         Integer newId = -1;
@@ -335,7 +335,7 @@ public class DbAccess {
         }
     }
 
-    public void updateChildMedia(MediaCollection currentCollection) {
+    public void updateChildMediaArrangement(MediaCollection currentCollection) {
         //update next and previous id's of each item in collection, from head to tail
         MediaItem travel = currentCollection.getHeadItem();
         String nextId = "null";
@@ -346,12 +346,6 @@ public class DbAccess {
             stmt = dbConnection.createStatement();
 
             while (travel != null) {
-                //TODO: REMOVE temp checks that verify head item's prev is null, and tail item's next is null
-                if (travel == currentCollection.getHeadItem() && currentCollection.getHeadItem().getPreviusItem() != null)
-                    System.out.println("LOG: error - head's previous is not null");
-                if (travel == currentCollection.getTailItem() && currentCollection.getTailItem().getNextItem() != null)
-                    System.out.println("LOG: error - tail's next is not null");
-
                 nextId = travel.getNextItem() == null ? "null" : travel.getNextItem().getId().toString();
                 prevId = travel.getPreviusItem() == null ? "null" : travel.getPreviusItem().getId().toString();
 
@@ -364,6 +358,12 @@ public class DbAccess {
         catch (SQLException ex) {
             System.out.println(ex);
         }
+
+    }
+
+    //as opposed to appendNewChildMedia, where there aren't update operations but rather inserts
+    public void appendExistingChildMedia(MediaItem destCollection) {
+        //TODO: Implement
 
     }
 }

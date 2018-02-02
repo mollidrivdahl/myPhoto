@@ -3,14 +3,12 @@ package com.mdSolutions.myPhoto;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.activity.InvalidActivityException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Properties;
 
 public class MyPhoto {
 
@@ -84,12 +82,26 @@ public class MyPhoto {
 
     public void organizeManually(MediaItem leftConnection, MediaItem rightConnection) {
         currentCollection.organizeManually(leftConnection, rightConnection);
-        DbAccess.getInstance().updateChildMedia(currentCollection);
+        DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
     public void organizeAutomatically(AUTO_ORGANIZE_BY format) {
         currentCollection.organizeAutomatically(format);
-        DbAccess.getInstance().updateChildMedia(currentCollection);
+        DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
+    }
+
+    public void moveMedia(MediaCollection destCollection) throws InvalidActivityException {
+        boolean preventAction = false;
+
+        //TODO: check if any [nested] collections would be moved into level 4 & prevent action
+
+
+        if (preventAction)
+            throw new InvalidActivityException("Cannot move media - one or more [nested] collections would be moved down to level 4");
+
+        currentCollection.moveMedia(destCollection);
+        //DbAccess.getInstance().appendExistingChildMedia(destCollection);
+        //DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
     /**

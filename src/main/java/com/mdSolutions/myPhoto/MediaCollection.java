@@ -9,10 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 public class MediaCollection extends MediaItem {
 
@@ -99,20 +95,20 @@ public class MediaCollection extends MediaItem {
     }
 
     //newMedia in correct order (from first to last index) upon entering this method
-    public void addMedia(ArrayList<MediaItem> newMedia) {
-        if (listOfChildren.size() == 0) {
-            headItem = newMedia.get(0);
-            newMedia.get(0).previusItem = null;
-        }
-        else
-        {
-            tailItem.nextItem = newMedia.get(0);
-            newMedia.get(0).previusItem = tailItem;
-        }
-
-        //TODO: iterate through newMedia connecting pointers and adjusting relPath, parentId, parentCollectionPath, levelNum
-        //TODO: last item in newMedia should point to null and become new tailItem
-    }
+//    public void addMedia(ArrayList<MediaItem> newMedia) {
+//        if (listOfChildren.size() == 0) {
+//            headItem = newMedia.get(0);
+//            newMedia.get(0).previusItem = null;
+//        }
+//        else
+//        {
+//            tailItem.nextItem = newMedia.get(0);
+//            newMedia.get(0).previusItem = tailItem;
+//        }
+//
+//        //TODO: iterate through newMedia connecting pointers and adjusting relPath, parentId, parentCollectionPath, levelNum
+//        //TODO: last item in newMedia should point to null and become new tailItem
+//    }
 
     public void unselectAllChildren() {
         for (MediaItem item: listOfChildren) {
@@ -328,7 +324,44 @@ public class MediaCollection extends MediaItem {
         }
     }
 
-    private void processStream(MediaItem item, ArrayList<MediaItem> tempReorder) {
-        tempReorder.add(item);
+    public void moveMedia(MediaCollection destCollection) {
+        MediaItem travel = headItem;
+        MediaItem priorUnselected = null;
+
+        //connect non-selected items, add each selected item to destination collection,
+        //& remove each selected item from currentCollection
+        while (travel != null) {
+            if (travel.isSelected) {
+                if (travel == headItem)
+                    headItem = null;
+                if (travel == tailItem)
+                    tailItem = priorUnselected;
+
+                listOfChildren.remove(travel);
+
+                MediaItem nextInList = travel.nextItem;
+                destCollection.addMedia(travel);
+
+                travel = nextInList;
+            }
+            else {
+                if (priorUnselected == null)
+                    headItem = travel;
+                else
+                    priorUnselected.nextItem = travel;
+
+                travel.previusItem = priorUnselected;
+                priorUnselected = travel;
+
+                travel = travel.nextItem;
+            }
+        }
+
+        if (priorUnselected != null)
+            priorUnselected.nextItem = null;
+
+        tailItem = priorUnselected;
+
+        unselectAllChildren();
     }
 }
