@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.activity.InvalidActivityException;
+import javax.imageio.plugins.jpeg.JPEGHuffmanTable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -36,6 +37,11 @@ public class AppGui {
     @Getter @Setter private JScrollPane centerScrollPane;
     @Getter @Setter private JPanel rightPanel;
     @Getter @Setter private JPanel bottomPanel;
+    @Getter @Setter private JPanel mediaViewPanel;  //center panel replacement - for viewing & playback of the photos/videos
+    @Getter @Setter private JPanel mediaDisplayPanel;   //viewing of photos/videos
+    @Getter @Setter private JPanel mediaPlaybackPanel;  //playback of photos/videos
+    @Getter @Setter private JPanel photoPlaybackPanel;
+    @Getter @Setter private JPanel videoPlaybackPanel;
 
     public AppGui() {
         myPhoto = new MyPhoto();
@@ -66,8 +72,10 @@ public class AppGui {
         gridViewPanel = new JPanel(new MyFlowLayout(MyFlowLayout.LEADING, 0, 40));
         gridViewPanel.setBackground(Color.black);
         gridViewPanel.setSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
+
         centerScrollPane = new JScrollPane(gridViewPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);    //displays gridViewPanel within centerScrollPane's JViewport
+        centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5, Color.white));
 
         rightPanel = new JPanel();
         rightPanel.setBackground(Color.gray);
@@ -76,6 +84,24 @@ public class AppGui {
         bottomPanel = new JPanel();
         bottomPanel.setBackground(Color.gray);
         bottomPanel.setPreferredSize(new Dimension(WIN_WIDTH, WIN_BORDER_THICKNESS));
+
+        mediaViewPanel = new JPanel(new GridBagLayout());
+        mediaViewPanel.setBackground(Color.black);
+        mediaViewPanel.setPreferredSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
+        GridBagConstraints c = new GridBagConstraints();
+
+        mediaDisplayPanel = new JPanel(new GridBagLayout());
+        mediaDisplayPanel.setBackground(Color.black);
+        mediaDisplayPanel.setPreferredSize(new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - 75));
+        c.gridx = 0; c.gridy = 0;
+        mediaViewPanel.add(mediaDisplayPanel, c);
+
+        mediaPlaybackPanel = new JPanel();
+        mediaPlaybackPanel.setBackground(Color.black);
+        mediaPlaybackPanel.setBorder(BorderFactory.createMatteBorder(3,0,0,0, MY_RED));
+        mediaPlaybackPanel.setPreferredSize(new Dimension(MAIN_WIDTH, 75));
+        c.gridx = 0; c.gridy = 1;
+        mediaViewPanel.add(mediaPlaybackPanel, c);
 
         windowPanel.add(topPanel, BorderLayout.PAGE_START);
         windowPanel.add(menuPanel, BorderLayout.LINE_START);
@@ -93,6 +119,9 @@ public class AppGui {
 
         //--add "buttons" and "drop locations" to left menu panel
         initializeMenuPanel();
+
+        //--setup "viewing/playback" features of photo & video playback panels
+        initializePlaybackPanels();
 
         //--add root collection's "media items" to center panel
         populateGridView(myPhoto.getCurrentCollection());
@@ -205,6 +234,30 @@ public class AppGui {
         menuPanel.add(cbAutoOrganize);
         menuPanel.add(btnAutoOrganize);
         menuPanel.add(btnMoveUp);
+    }
+
+    private void initializePlaybackPanels() {
+        photoPlaybackPanel = new JPanel();
+        videoPlaybackPanel = new JPanel();
+
+        JButton btnGoBack = new JButton("<-- Go Back");
+        btnGoBack.addActionListener(e -> {
+            //remove the image and viewing playback features from corresponding panels
+            mediaDisplayPanel.removeAll();
+            mediaPlaybackPanel.remove(photoPlaybackPanel);
+
+            //swap the grid view panel back into the center scroll pane
+            centerScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5, Color.white));
+            centerScrollPane.setViewportView(gridViewPanel);
+        });
+
+        //TODO: add photo rotate and zoom features
+
+        photoPlaybackPanel.setBackground(Color.blue);
+        photoPlaybackPanel.add(btnGoBack);
+
+        //TODO: add video playback features
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {

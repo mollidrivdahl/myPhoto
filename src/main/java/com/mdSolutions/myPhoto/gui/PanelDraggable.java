@@ -3,6 +3,7 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MediaItem;
 import com.mdSolutions.myPhoto.MyPhoto;
+import com.mdSolutions.myPhoto.PhotoMedia;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -65,13 +66,15 @@ public class PanelDraggable extends JPanel implements Transferable,
     }
 
     public void displayImage(BufferedImage image) {
-        if (image == null)
-            return;
-
-        ImageIcon icon = new ImageIcon(image);
-        JLabel iconLabel = new JLabel();
-        iconLabel.setIcon(icon);
-        add(iconLabel);
+        if (image == null) {
+            setBackground(Color.black);
+        }
+        else {
+            ImageIcon icon = new ImageIcon(image);
+            JLabel iconLabel = new JLabel();
+            iconLabel.setIcon(icon);
+            add(iconLabel);
+        }
     }
 
     public void resetBorder() {
@@ -100,6 +103,8 @@ public class PanelDraggable extends JPanel implements Transferable,
 
                         if (mediaItem instanceof MediaCollection)
                             navigateIntoCollection();
+                        else if (mediaItem instanceof PhotoMedia)
+                            viewPhotoInWindow();
                     }
                 }
             }
@@ -128,6 +133,23 @@ public class PanelDraggable extends JPanel implements Transferable,
         MyPhoto myPhoto = AppGui.getInstance().getMyPhoto();
         myPhoto.refreshCurrentCollection(mediaItem.getId());
         AppGui.getInstance().populateGridView(myPhoto.getCurrentCollection());
+    }
+
+    private void viewPhotoInWindow() {
+        AppGui appInstance = AppGui.getInstance();
+
+        //place photo playback panel into the media playback panel
+        appInstance.getMediaPlaybackPanel().add(appInstance.getPhotoPlaybackPanel());
+
+        //place the image into the media display panel
+        JLabel iconLabel = new JLabel();
+        iconLabel.setIcon(((PhotoMedia)mediaItem).getImage());
+        appInstance.getMediaDisplayPanel().add(iconLabel);
+
+        //place the entire media view panel into the center scroll pane's viewport (swapping out the grid view panel)
+        appInstance.getCenterScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        appInstance.getCenterScrollPane().setBorder(BorderFactory.createMatteBorder(5,5,5,5, AppGui.MY_RED));
+        appInstance.getCenterScrollPane().setViewportView(appInstance.getMediaViewPanel());
     }
 
     //The DataFlavor is a marker to let the DropTarget know how to
