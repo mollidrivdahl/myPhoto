@@ -150,7 +150,7 @@ public class PanelDraggable extends JPanel implements Transferable,
 
         //place the entire media view panel into the center scroll pane's viewport (swapping out the grid view panel)
         appInstance.getCenterScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-        appInstance.getCenterScrollPane().setBorder(BorderFactory.createMatteBorder(5,5,5,5, AppGui.MY_RED));
+        appInstance.getCenterScrollPane().setBorder(BorderFactory.createMatteBorder(0,0,0,0, Color.white));
         appInstance.getCenterScrollPane().setViewportView(appInstance.getMediaViewPanel());
     }
 

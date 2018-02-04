@@ -23,6 +23,7 @@ public class AppGui {
     public static final int MID_HEIGHT = WIN_HEIGHT - TITLE_HEIGHT - WIN_BORDER_THICKNESS;
     public static final int MENU_WIDTH = WIN_WIDTH / 6;
     public static final int MAIN_WIDTH = WIN_WIDTH - MENU_WIDTH - WIN_BORDER_THICKNESS;
+    public static final int PLAYBACK_HEIGHT = 50;
     public static final Color MY_PURPLE = new Color(119, 21, 165);
     public static final Color MY_RED = new Color(242, 33, 65);
     public static final Color MY_BLUE = new Color(3, 147, 155);
@@ -41,6 +42,7 @@ public class AppGui {
     @Getter @Setter private JPanel bottomPanel;
     @Getter @Setter private JPanel mediaViewPanel;  //center panel replacement - for viewing & playback of the photos/videos
     @Getter @Setter private JPanel mediaDisplayPanel;   //viewing of photos/videos
+    @Getter @Setter private JScrollPane mediaDisplayScrollPane;
     @Getter @Setter private JPanel mediaPlaybackPanel;  //playback of photos/videos
     @Getter @Setter private JPanel photoPlaybackPanel;
     @Getter @Setter private JPanel videoPlaybackPanel;
@@ -94,14 +96,17 @@ public class AppGui {
 
         mediaDisplayPanel = new JPanel(new GridBagLayout());
         mediaDisplayPanel.setBackground(Color.black);
-        mediaDisplayPanel.setPreferredSize(new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - 75));
         c.gridx = 0; c.gridy = 0;
-        mediaViewPanel.add(mediaDisplayPanel, c);
+
+        mediaDisplayScrollPane = new JScrollPane(mediaDisplayPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        mediaDisplayScrollPane.setPreferredSize(new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - PLAYBACK_HEIGHT));
+        mediaDisplayScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,3,5, MY_RED));
+        mediaViewPanel.add(mediaDisplayScrollPane, c);
 
         mediaPlaybackPanel = new JPanel();
-        mediaPlaybackPanel.setBackground(Color.black);
-        mediaPlaybackPanel.setBorder(BorderFactory.createMatteBorder(3,0,0,0, MY_RED));
-        mediaPlaybackPanel.setPreferredSize(new Dimension(MAIN_WIDTH, 75));
+        mediaPlaybackPanel.setBorder(BorderFactory.createMatteBorder(0,5,5,5, MY_RED));
+        mediaPlaybackPanel.setPreferredSize(new Dimension(MAIN_WIDTH, PLAYBACK_HEIGHT));
         c.gridx = 0; c.gridy = 1;
         mediaViewPanel.add(mediaPlaybackPanel, c);
 
@@ -264,11 +269,22 @@ public class AppGui {
             ((JLabel)mediaDisplayPanel.getComponent(0)).setIcon(media.getImage());
         });
 
-        //TODO: add photo rotate and zoom features
+        JSlider sliderZoom = new JSlider(JSlider.HORIZONTAL, 1, 10, 2);
+        sliderZoom.addChangeListener(e -> {
+            JSlider source = (JSlider)e.getSource();
 
-        photoPlaybackPanel.setBackground(Color.blue);
+            if (!source.getValueIsAdjusting()) {
+                Stream<MediaItem> selectedMedia = myPhoto.getCurrentCollection().getListOfChildren().stream().filter(MediaItem::isSelected);
+                PhotoMedia media = (PhotoMedia) selectedMedia.toArray()[0];
+
+                media.zoom(sliderZoom.getValue());
+                ((JLabel) mediaDisplayPanel.getComponent(0)).setIcon(media.getImage());
+            }
+        });
+
         photoPlaybackPanel.add(btnGoBack);
         photoPlaybackPanel.add(btnRotateCW);
+        photoPlaybackPanel.add(sliderZoom);
 
         //TODO: add video playback features
     }
