@@ -7,8 +7,11 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class MediaCollection extends MediaItem {
 
@@ -338,6 +341,17 @@ public class MediaCollection extends MediaItem {
                     tailItem = priorUnselected;
 
                 listOfChildren.remove(travel);
+
+                try {
+                    //move media appropriately in file explorer
+                    if (travel instanceof MediaCollection)
+                        Files.move(new File(travel.relPath).toPath(), new File(destCollection.relPath + travel.name + "/").toPath(), REPLACE_EXISTING);
+                    else
+                        Files.move(new File(travel.relPath).toPath(), new File(destCollection.relPath + travel.name).toPath(), REPLACE_EXISTING);
+                }
+                catch (Exception ex) {
+                    System.out.println(ex);
+                }
 
                 MediaItem nextInList = travel.nextItem;
                 destCollection.addMedia(travel);

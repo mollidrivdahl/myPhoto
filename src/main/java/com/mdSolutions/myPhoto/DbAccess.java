@@ -3,9 +3,12 @@ package com.mdSolutions.myPhoto;
 import javax.print.attribute.standard.Media;
 import javax.swing.plaf.nimbus.State;
 import java.io.File;
+import java.nio.file.Files;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class DbAccess {
 
@@ -269,18 +272,18 @@ public class DbAccess {
             if (!prevItemId.equals("null"))
                 stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + newId + " WHERE Id = " + prevItemId + ";"));
 
-            /*ResultSet details = stmt.executeQuery(String.format("SELECT * FROM MediaItem"));
-            while (details.next()) {
-                System.out.println(details.getObject("Id"));
-                System.out.println(details.getString("Name"));
-                System.out.println(details.getString("RelPath"));
-                System.out.println(details.getObject("ParentId"));
-                System.out.println(details.getObject("NextItemId"));
-                System.out.println(details.getObject("PrevItemId"));
-                System.out.println(details.getInt("LevelNum"));
-
-                System.out.println("------------------");
-            }*/
+//            ResultSet details = stmt.executeQuery(String.format("SELECT * FROM MediaItem"));
+//            while (details.next()) {
+//                System.out.println(details.getObject("Id"));
+//                System.out.println(details.getString("Name"));
+//                System.out.println(details.getString("RelPath"));
+//                System.out.println(details.getObject("ParentId"));
+//                System.out.println(details.getObject("NextItemId"));
+//                System.out.println(details.getObject("PrevItemId"));
+//                System.out.println(details.getInt("LevelNum"));
+//
+//                System.out.println("------------------");
+//            }
         }
         catch (SQLException ex) {
             System.out.println(ex.getMessage());
@@ -307,7 +310,7 @@ public class DbAccess {
         try {
             //get tail item of collection from database, if exists
             stmt = dbConnection.createStatement();
-            ResultSet rs = stmt.executeQuery(String.format("SELECT Id FROM MediaItem WHERE ParentId = " + updatedCollection.getId() + " AND NextItemId = null;"));
+            ResultSet rs = stmt.executeQuery(String.format("SELECT Id FROM MediaItem WHERE ParentId = " + updatedCollection.getId() + " AND NextItemId is null;"));
             if (rs.next()) {
                 firstPrevId = ((Integer)rs.getObject("Id"));
             }
@@ -413,9 +416,10 @@ public class DbAccess {
             //level 3 check for collections and separate into stand alone media - BUT should not be allowed (for now)
 
         try {
-            //get tail item of collection from database, if exists
             stmt = dbConnection.createStatement();
-            ResultSet rs = stmt.executeQuery(String.format("SELECT Id FROM MediaItem WHERE ParentId = " + destCollection.getId() + " AND NextItemId = null;"));
+
+            //get tail item of collection from database, if exists
+            ResultSet rs = stmt.executeQuery(String.format("SELECT Id FROM MediaItem WHERE ParentId = " + destCollection.getId() + " AND NextItemId is null;"));
             if (rs.next()) {
                 firstPrevId = ((Integer)rs.getObject("Id"));
             }
@@ -444,8 +448,6 @@ public class DbAccess {
 
                 stmt.executeUpdate(String.format("UPDATE MediaItem SET RelPath = \'" + travel.getRelPath() + "\' , ParentId = " + travel.getParentId() +
                         " , LevelNum = " + travel.getLevelNum() + " WHERE Id = " + travel.getId() + ";"));
-
-                //TODO: Move media appropriately in file explorer
 
                 if (travel instanceof MediaCollection)
                     nestedCollections.add((MediaCollection) travel);
@@ -499,9 +501,6 @@ public class DbAccess {
                 else
                     stmtUpdate.executeUpdate(String.format("UPDATE MediaItem SET RelPath = \'" + newChildPath + "\' , LevelNum = "
                         + (collectionLevel - 1) + " WHERE Id = " + childId + ";"));
-
-                //TODO: Move media appropriately in file explorer
-
             }
 
             //update info for all nested collections
@@ -512,7 +511,7 @@ public class DbAccess {
                     updateChildMediaDetailsRecursive(id, path, collectionLevel - 1, isMoveDown);
             });
         }
-        catch (SQLException ex) {
+        catch (Exception ex) {
             System.out.println(ex);
         }
     }
