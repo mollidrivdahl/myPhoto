@@ -3,16 +3,21 @@ package com.mdSolutions.myPhoto;
 import com.mdSolutions.myPhoto.gui.AppGui;
 import lombok.Getter;
 import lombok.Setter;
+import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class PhotoMedia extends IndividualMedia {
 
+    private enum ORIENTATION { STRAIGHT, RIGHTWARD, UPSIDEDOWN, LEFTWARD }
     private @Getter @Setter ImageIcon image;
+    private ORIENTATION curOrientation;
 
     public PhotoMedia() {
         super();
@@ -46,6 +51,7 @@ public class PhotoMedia extends IndividualMedia {
             g2d.drawImage(originalImg, 0, 0, (int)fullSizeAspectRatio.getWidth(), (int)fullSizeAspectRatio.getHeight(),null);
             g2d.dispose();
             image = new ImageIcon(tempFullSize);
+            curOrientation = ORIENTATION.STRAIGHT;
         }
         catch (Exception ex) {
             System.out.println(ex.getMessage());
@@ -86,5 +92,46 @@ public class PhotoMedia extends IndividualMedia {
         }
 
         return new Dimension(newWidth, newHeight);
+    }
+
+    public void rotate() {
+        BufferedImage originalImg;
+        BufferedImage newImg;
+
+        try {
+            originalImg = ImageIO.read(new File(relPath));
+
+            //set new orientation and rotate img
+            if (curOrientation == ORIENTATION.STRAIGHT) {
+                curOrientation = ORIENTATION.RIGHTWARD;
+                newImg = Scalr.rotate(originalImg, Scalr.Rotation.CW_90);
+            }
+            else if (curOrientation == ORIENTATION.RIGHTWARD) {
+                curOrientation = ORIENTATION.UPSIDEDOWN;
+                newImg = Scalr.rotate(originalImg, Scalr.Rotation.CW_180);
+            }
+            else if (curOrientation == ORIENTATION.UPSIDEDOWN) {
+                curOrientation = ORIENTATION.LEFTWARD;
+                newImg = Scalr.rotate(originalImg, Scalr.Rotation.CW_270);
+            }
+            else {
+                curOrientation = ORIENTATION.STRAIGHT;
+                newImg = originalImg;
+            }
+
+            //setup full size image for local variable, maintaining original aspect-ratio
+            Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(newImg.getWidth(), newImg.getHeight()),
+                    new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - 75));
+            BufferedImage tempFullSize = new BufferedImage((int)fullSizeAspectRatio.getWidth(),
+                    (int)fullSizeAspectRatio.getHeight(), originalImg.getType());
+            Graphics2D g2d = tempFullSize.createGraphics();
+            g2d.drawImage(newImg, 0, 0, (int)fullSizeAspectRatio.getWidth(), (int)fullSizeAspectRatio.getHeight(),null);
+            g2d.dispose();
+
+            image = new ImageIcon(tempFullSize);
+        }
+        catch (Exception ex) {
+            System.out.println(ex);
+        }
     }
 }

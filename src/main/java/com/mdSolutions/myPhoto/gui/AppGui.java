@@ -3,6 +3,7 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.MediaCollection;
 import com.mdSolutions.myPhoto.MediaItem;
 import com.mdSolutions.myPhoto.MyPhoto;
+import com.mdSolutions.myPhoto.PhotoMedia;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import javax.imageio.plugins.jpeg.JPEGHuffmanTable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.stream.Stream;
 
 public class AppGui {
 
@@ -245,6 +247,7 @@ public class AppGui {
             //remove the image and viewing playback features from corresponding panels
             mediaDisplayPanel.removeAll();
             mediaPlaybackPanel.remove(photoPlaybackPanel);
+            myPhoto.getCurrentCollection().unselectAllChildren();
 
             //swap the grid view panel back into the center scroll pane
             centerScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -252,10 +255,20 @@ public class AppGui {
             centerScrollPane.setViewportView(gridViewPanel);
         });
 
+        JButton btnRotateCW = new JButton("Rotate Clockwise");
+        btnRotateCW.addActionListener(e -> {
+            Stream<MediaItem> selectedMedia = myPhoto.getCurrentCollection().getListOfChildren().stream().filter(MediaItem::isSelected);
+            PhotoMedia media = (PhotoMedia)selectedMedia.toArray()[0];
+
+            media.rotate();
+            ((JLabel)mediaDisplayPanel.getComponent(0)).setIcon(media.getImage());
+        });
+
         //TODO: add photo rotate and zoom features
 
         photoPlaybackPanel.setBackground(Color.blue);
         photoPlaybackPanel.add(btnGoBack);
+        photoPlaybackPanel.add(btnRotateCW);
 
         //TODO: add video playback features
     }

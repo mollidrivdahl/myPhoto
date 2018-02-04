@@ -103,8 +103,10 @@ public class PanelDraggable extends JPanel implements Transferable,
 
                         if (mediaItem instanceof MediaCollection)
                             navigateIntoCollection();
-                        else if (mediaItem instanceof PhotoMedia)
+                        else if (mediaItem instanceof PhotoMedia) {
+                            mediaItem.setSelected(true);
                             viewPhotoInWindow();
+                        }
                     }
                 }
             }
