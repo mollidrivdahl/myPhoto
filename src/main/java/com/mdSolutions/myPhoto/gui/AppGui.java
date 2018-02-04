@@ -8,9 +8,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.activity.InvalidActivityException;
-import javax.imageio.plugins.jpeg.JPEGHuffmanTable;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.util.stream.Stream;
 
@@ -96,7 +97,7 @@ public class AppGui {
 
         mediaDisplayPanel = new JPanel(new GridBagLayout());
         mediaDisplayPanel.setBackground(Color.black);
-        c.gridx = 0; c.gridy = 0;
+        c.gridx = 0; c.gridy = 0; c.fill = GridBagConstraints.BOTH; c.weightx = 1; c.weighty = 1;
 
         mediaDisplayScrollPane = new JScrollPane(mediaDisplayPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -333,7 +334,8 @@ public class AppGui {
     public void browseFileSystem() {
 
         JFrame explorerFrame = new JFrame();
-        JFileChooser c = new JFileChooser();
+        String userHomeDir = System.getProperty("user.home");
+        JFileChooser c = new JFileChooser(userHomeDir + "\\Pictures");
 
         c.setFileSelectionMode(JFileChooser.FILES_ONLY);    //default, unnecessary
         c.setMultiSelectionEnabled(true);

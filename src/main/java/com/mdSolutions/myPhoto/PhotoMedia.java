@@ -42,6 +42,7 @@ public class PhotoMedia extends IndividualMedia {
             g2d.dispose();
 
             //setup full size image for local variable, maintaining original aspect-ratio
+            //TODO: adjust full size calculation for a re-sized window
             Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(originalImg.getWidth(), originalImg.getHeight()),
                     new Dimension(AppGui.MAIN_WIDTH - 10, AppGui.MID_HEIGHT - AppGui.PLAYBACK_HEIGHT - 10)); //-10 for scrollbar
             BufferedImage tempFullSize = new BufferedImage((int)fullSizeAspectRatio.getWidth(),
