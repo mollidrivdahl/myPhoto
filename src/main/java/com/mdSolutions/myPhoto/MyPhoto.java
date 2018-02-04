@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.stream.Stream;
 
 public class MyPhoto {
 
@@ -91,17 +92,18 @@ public class MyPhoto {
     }
 
     public void moveMediaIn(MediaCollection destCollection) throws InvalidActivityException {
-        boolean preventAction = false;
+        boolean allowAction = true;
 
-        //TODO: check if any [nested] collections would be moved into level 4 & prevent action
+        //check if any [nested] collections would be moved into level 4 & prevent action
+        Stream<MediaItem> selectedMedia = currentCollection.getListOfChildren().stream().filter(MediaItem::isSelected);
+        allowAction = DbAccess.getInstance().isNestingAllowed(selectedMedia.toArray());
 
-
-        if (preventAction)
+        if (!allowAction)
             throw new InvalidActivityException("Cannot move media - one or more [nested] collections would be moved down to level 4");
 
         currentCollection.moveMedia(destCollection);
-        //DbAccess.getInstance().appendExistingChildMedia(destCollection);
-        //DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
+        DbAccess.getInstance().appendExistingChildMedia(destCollection, true);
+        DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
     public void moveMediaOut() throws InvalidActivityException {
@@ -112,8 +114,8 @@ public class MyPhoto {
         MediaCollection parentCollection = DbAccess.getInstance().getMediaById(currentCollection.getParentId());
 
         currentCollection.moveMedia(parentCollection);
-        //DbAccess.getInstance().appendExistingChildMedia(destCollection);
-        //DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
+        DbAccess.getInstance().appendExistingChildMedia(parentCollection, false);
+        DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
     /**

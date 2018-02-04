@@ -400,12 +400,187 @@ public class DbAccess {
     }
 
     //as opposed to appendNewChildMedia, where there aren't update operations but rather inserts
-    public void appendExistingChildMedia(MediaItem destCollection) {
-        //TODO: Implement
+    public void appendExistingChildMedia(MediaCollection destCollection, boolean isMoveDown) {
+        Statement stmt;
+        Integer firstPrevId = null;
+        ArrayList<MediaCollection> nestedCollections = new ArrayList<>();
 
-        //TODO: apply appropriate behavior if destCollection is level 0 or level 4
-            //level 0 check for stand-alone and create new collection and add to collection
-            //level 4 check for collections and separate into stand alone media - BUT should not be allowed (for now)
+        if (destCollection.getHeadItem() == null)
+            return;
 
+        //TODO: apply appropriate behavior if destCollection is level 0 or level 3
+            //level 0 check for stand-alone within destCollection and create new collection of the stand-alone media and add to destCollection
+            //level 3 check for collections and separate into stand alone media - BUT should not be allowed (for now)
+
+        try {
+            //get tail item of collection from database, if exists
+            stmt = dbConnection.createStatement();
+            ResultSet rs = stmt.executeQuery(String.format("SELECT Id FROM MediaItem WHERE ParentId = " + destCollection.getId() + " AND NextItemId = null;"));
+            if (rs.next()) {
+                firstPrevId = ((Integer)rs.getObject("Id"));
+            }
+
+            MediaItem travel = destCollection.getHeadItem();
+
+            while (travel != null) {
+                //connect list of appended items to back of existing items in collection
+                if (travel == destCollection.getHeadItem() && firstPrevId != null)
+                {
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + travel.getId() + " WHERE Id = " + firstPrevId + ";"));
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = " + firstPrevId + " WHERE Id = " + travel.getId() + ";"));
+                }
+                else {
+                    if (firstPrevId == null)
+                        stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = null WHERE Id = " + travel.getId() + ";"));
+                    else
+                        stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = " + travel.getPreviusItem().getId() + " WHERE Id = " + travel.getId() + ";"));
+                }
+
+                //connect to the next media item
+                if (travel.getNextItem() != null)
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + travel.getNextItem().getId() + " WHERE Id = " + travel.getId() + ";"));
+                else
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = null WHERE Id = " + travel.getId() + ";"));
+
+                stmt.executeUpdate(String.format("UPDATE MediaItem SET RelPath = \'" + travel.getRelPath() + "\' , ParentId = " + travel.getParentId() +
+                        " , LevelNum = " + travel.getLevelNum() + " WHERE Id = " + travel.getId() + ";"));
+
+                //TODO: Move media appropriately in file explorer
+
+                if (travel instanceof MediaCollection)
+                    nestedCollections.add((MediaCollection) travel);
+
+                travel = travel.getNextItem();
+            }
+
+            //update info for all nested collections
+            for (MediaCollection collection : nestedCollections) {
+                updateChildMediaDetailsRecursive(collection.getId(), collection.getRelPath(), collection.getLevelNum(), isMoveDown);
+            }
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
+
+    }
+
+    private void updateChildMediaDetailsRecursive(Integer collectionId, String collectionPath, int collectionLevel, boolean isMoveDown) {
+        Statement stmtQuery;
+        Statement stmtUpdate;
+        Hashtable<Integer, String> nestedCollectionDetails = new Hashtable<>();
+
+        Integer childId;
+        String childName;
+        String newChildPath;
+        String childMediaType;
+
+        try {
+            stmtQuery = dbConnection.createStatement();
+            stmtUpdate = dbConnection.createStatement();
+
+            //retrieve all children from database
+            ResultSet rs = stmtQuery.executeQuery(String.format("SELECT Id, Name, MediaType FROM MediaItem WHERE ParentId = " + collectionId + ";"));
+            while (rs.next()) {
+                childId = (Integer)rs.getObject("Id");
+                childName = rs.getString("Name");
+                childMediaType = rs.getString("MediaType");
+
+                if (childMediaType.equals("Collection")) {
+                    newChildPath = collectionPath + childName + "/";
+                    nestedCollectionDetails.put(childId, newChildPath);
+                }
+                else
+                    newChildPath = collectionPath + childName;
+
+                //update all children
+                if (isMoveDown)
+                    stmtUpdate.executeUpdate(String.format("UPDATE MediaItem SET RelPath = \'" + newChildPath + "\' , LevelNum = "
+                        + (collectionLevel + 1) + " WHERE Id = " + childId + ";"));
+                else
+                    stmtUpdate.executeUpdate(String.format("UPDATE MediaItem SET RelPath = \'" + newChildPath + "\' , LevelNum = "
+                        + (collectionLevel - 1) + " WHERE Id = " + childId + ";"));
+
+                //TODO: Move media appropriately in file explorer
+
+            }
+
+            //update info for all nested collections
+            nestedCollectionDetails.forEach((id, path) -> {
+                if (isMoveDown)
+                    updateChildMediaDetailsRecursive(id, path, collectionLevel + 1, isMoveDown);
+                else
+                    updateChildMediaDetailsRecursive(id, path, collectionLevel - 1, isMoveDown);
+            });
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
+    }
+
+    public boolean isNestingAllowed(Object[] nestedMedia) {
+        Statement stmt;
+        ArrayList<Integer> nestedIds = new ArrayList<>();
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            for (int i = 0; i < nestedMedia.length; i++) {
+                if (nestedMedia[i] instanceof MediaCollection) {
+                    if (((MediaCollection)nestedMedia[i]).levelNum == 3)   //implies collection would be moved down to level 4
+                        return false;
+
+                    //get all collection items whose parentId is this item's id
+                    ResultSet rs = stmt.executeQuery(String.format("SELECT MediaItem.Id, LevelNum FROM MediaItem JOIN Collection ON MediaItem.Id = Collection.Id WHERE ParentId = " + ((MediaCollection)nestedMedia[i]).getId() + ";"));
+                    while (rs.next()) {
+                        if (rs.getInt("LevelNum") == 3)
+                            return false;
+
+                        nestedIds.add((Integer)rs.getObject("Id"));
+                    }
+
+                    //check child collections for nesting
+                    if (!isNestingAllowedRecursive(nestedIds))
+                        return false;
+
+                    nestedIds.clear();
+                }
+            }
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
+
+        return true;
+    }
+
+    private boolean isNestingAllowedRecursive(ArrayList<Integer> nestedIds) {
+        Statement stmt;
+        ArrayList<Integer> newNestedIds = new ArrayList<>();
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            for (int i = 0; i < nestedIds.size(); i++) {
+                //get all collection items whose parentId is this item's id
+                ResultSet rs = stmt.executeQuery(String.format("SELECT MediaItem.Id, LevelNum FROM MediaItem JOIN Collection ON MediaItem.Id = Collection.Id WHERE ParentId = " + nestedIds.get(i) + ";"));
+                while (rs.next()) {
+                    if (rs.getInt("LevelNum") == 3)    //implies this collection would be moved down to level 4
+                        return false;
+
+                    newNestedIds.add((Integer)rs.getObject("Id"));
+                }
+
+                //check child collections for nesting
+                if (!isNestingAllowedRecursive(newNestedIds))
+                    return false;
+
+                newNestedIds.clear();
+            }
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
+
+        return true;
     }
 }

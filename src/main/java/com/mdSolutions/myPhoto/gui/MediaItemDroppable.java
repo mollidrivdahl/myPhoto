@@ -82,6 +82,10 @@ public class MediaItemDroppable extends PanelDroppable {
         }
         catch (InvalidActivityException ex) {
             JOptionPane.showMessageDialog(null, ex.getMessage());
+            AppGui.getInstance().getMyPhoto().getCurrentCollection().unselectAllChildren();
+            for (Component gridCell : AppGui.getInstance().getGridViewPanel().getComponents()) {
+                ((GridCell)gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
+            }
         }
     }
 
