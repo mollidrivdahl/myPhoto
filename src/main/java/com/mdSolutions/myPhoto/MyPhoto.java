@@ -113,6 +113,14 @@ public class MyPhoto {
         //retrieve currentCollection's parent details (just not the parent's list of children)
         MediaCollection parentCollection = DbAccess.getInstance().getMediaById(currentCollection.getParentId());
 
+        if (parentCollection.getLevelNum() == 0) {    //root collection
+            for (MediaItem media : currentCollection.getListOfChildren()) {
+                //check if any stand-alone media would be moved up to level 1 & prevent action
+                if (media.isSelected() && !(media instanceof MediaCollection))
+                    throw new InvalidActivityException("Cannot move media up - one or more individual media items would be moved up to level 1");
+            }
+        }
+
         currentCollection.moveMedia(parentCollection);
         DbAccess.getInstance().appendExistingChildMedia(parentCollection, false);
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);

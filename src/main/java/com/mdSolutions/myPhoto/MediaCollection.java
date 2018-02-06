@@ -97,22 +97,6 @@ public class MediaCollection extends MediaItem {
         listOfChildren.add(newMedia);
     }
 
-    //newMedia in correct order (from first to last index) upon entering this method
-//    public void addMedia(ArrayList<MediaItem> newMedia) {
-//        if (listOfChildren.size() == 0) {
-//            headItem = newMedia.get(0);
-//            newMedia.get(0).previusItem = null;
-//        }
-//        else
-//        {
-//            tailItem.nextItem = newMedia.get(0);
-//            newMedia.get(0).previusItem = tailItem;
-//        }
-//
-//        //TODO: iterate through newMedia connecting pointers and adjusting relPath, parentId, parentCollectionPath, levelNum
-//        //TODO: last item in newMedia should point to null and become new tailItem
-//    }
-
     public void unselectAllChildren() {
         for (MediaItem item: listOfChildren) {
             item.isSelected = false;

@@ -1,5 +1,7 @@
 package com.mdSolutions.myPhoto;
 
+import com.mdSolutions.myPhoto.gui.AppGui;
+
 import javax.print.attribute.standard.Media;
 import javax.swing.plaf.nimbus.State;
 import java.io.File;
@@ -410,10 +412,6 @@ public class DbAccess {
 
         if (destCollection.getHeadItem() == null)
             return;
-
-        //TODO: apply appropriate behavior if destCollection is level 0 or level 3
-            //level 0 check for stand-alone within destCollection and create new collection of the stand-alone media and add to destCollection
-            //level 3 check for collections and separate into stand alone media - BUT should not be allowed (for now)
 
         try {
             stmt = dbConnection.createStatement();

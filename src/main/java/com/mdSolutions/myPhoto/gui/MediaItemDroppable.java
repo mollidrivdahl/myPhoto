@@ -93,8 +93,6 @@ public class MediaItemDroppable extends PanelDroppable {
         //execute desired operations with imported data upon dropping
         @Override
         public boolean importData(JComponent comp, Transferable t, Point p) {
-            PanelDraggable destPanel = (PanelDraggable)t;   //Note: This is NOT the original instance that was dragged and dropped
-
             //dropped in the "reorganize" zone
             if (p.getX() < 10 || p.getX() > 190) {
                 System.out.println("reorganize zone");
