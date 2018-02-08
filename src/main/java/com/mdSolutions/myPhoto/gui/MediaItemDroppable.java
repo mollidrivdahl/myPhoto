@@ -62,29 +62,32 @@ public class MediaItemDroppable extends PanelDroppable {
     private void handleMovementInto() {
         MediaItem destCollection = panelDraggable.getMediaItem();
 
-        //if dropped media on a non-collection item
-        if (!(destCollection instanceof MediaCollection)) {
-            JOptionPane.showMessageDialog(null,
-                    "Cannot move media - destination item must be a collection");
-            return;
-        }
-        else if (destCollection.isSelected()) {
-            JOptionPane.showMessageDialog(null,
-                    "Cannot move media - destination collection cannot be selected");
-            return;
-        }
-
         try {
-            AppGui.getInstance().getMyPhoto().moveMediaIn((MediaCollection)panelDraggable.getMediaItem());
+            //if dropped media on a non-collection item
+            if (!(destCollection instanceof MediaCollection)) {
+                throw new InvalidActivityException(
+                        "Cannot move media - destination item must be a collection");
+            }
+            //if dropped media on a selected collection
+            else if (destCollection.isSelected()) {
+                throw new InvalidActivityException(
+                        "Cannot move media - destination collection cannot be selected");
+            }
+
+            AppGui.getInstance().getMyPhoto().moveMediaIn((MediaCollection) panelDraggable.getMediaItem());
 
             //repopulate the grid view
             AppGui.getInstance().populateGridView(AppGui.getInstance().getMyPhoto().getCurrentCollection());
         }
         catch (InvalidActivityException ex) {
             JOptionPane.showMessageDialog(null, ex.getMessage());
-            AppGui.getInstance().getMyPhoto().getCurrentCollection().unselectAllChildren();
-            for (Component gridCell : AppGui.getInstance().getGridViewPanel().getComponents()) {
-                ((GridCell)gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
+
+            //deselect all children if not multi-select
+            if (!AppGui.getInstance().isMultiSelect()) {
+                AppGui.getInstance().getMyPhoto().getCurrentCollection().unselectAllChildren();
+                for (Component gridCell : AppGui.getInstance().getGridViewPanel().getComponents()) {
+                    ((GridCell) gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
+                }
             }
         }
     }
@@ -99,7 +102,7 @@ public class MediaItemDroppable extends PanelDroppable {
                 handleReorganization(p);
             }
             //dropped in the "move media into collection" zone
-            else if (panelDraggable.getMediaItem() instanceof MediaCollection) {
+            else {
                 System.out.println("move into collection zone");
                 handleMovementInto();
             }

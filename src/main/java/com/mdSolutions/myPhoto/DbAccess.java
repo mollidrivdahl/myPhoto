@@ -431,12 +431,11 @@ public class DbAccess {
                     stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + travel.getId() + " WHERE Id = " + firstPrevId + ";"));
                     stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = " + firstPrevId + " WHERE Id = " + travel.getId() + ";"));
                 }
-                else {
-                    if (firstPrevId == null)
-                        stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = null WHERE Id = " + travel.getId() + ";"));
-                    else
-                        stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = " + travel.getPreviusItem().getId() + " WHERE Id = " + travel.getId() + ";"));
-                }
+                else if (travel == destCollection.getHeadItem() && firstPrevId == null)
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = null WHERE Id = " + travel.getId() + ";"));
+                //list of appended items is first of items in collection
+                else
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = " + travel.getPreviusItem().getId() + " WHERE Id = " + travel.getId() + ";"));
 
                 //connect to the next media item
                 if (travel.getNextItem() != null)
