@@ -10,8 +10,8 @@ import lombok.Setter;
 import javax.activity.InvalidActivityException;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.stream.Stream;
 

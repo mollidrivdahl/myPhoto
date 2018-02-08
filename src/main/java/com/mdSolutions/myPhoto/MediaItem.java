@@ -74,7 +74,6 @@ public abstract class MediaItem implements Serializable{
             return new MediaCollection();
     }
 
-    //TODO: implement
     static MediaItem getConcreteType(File file) {
         String name = file.getName();
         String ext;

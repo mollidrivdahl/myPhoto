@@ -1,16 +1,9 @@
 package com.mdSolutions.myPhoto;
 
-import com.mdSolutions.myPhoto.gui.AppGui;
-
-import javax.print.attribute.standard.Media;
-import javax.swing.plaf.nimbus.State;
 import java.io.File;
-import java.nio.file.Files;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class DbAccess {
 
@@ -578,5 +571,61 @@ public class DbAccess {
         }
 
         return true;
+    }
+
+    public void UpdateMediaNameAndPath(MediaItem media) {
+        Statement stmt;
+
+        try {
+            stmt = dbConnection.createStatement();
+            stmt.executeUpdate(String.format("UPDATE MediaItem SET Name = \'" + media.getName() + "\' , RelPath = \'"
+                    + media.getRelPath() + "\' WHERE Id = " + media.getId() + ";"));
+
+            if (media instanceof MediaCollection)
+                updateChildMediaDetailsRecursive(media.getId(), media.getRelPath());
+        }
+        catch (SQLException ex) {
+            System.out.println(ex);
+        }
+    }
+
+    private void updateChildMediaDetailsRecursive(Integer collectionId, String collectionPath) {
+        Statement stmtQuery;
+        Statement stmtUpdate;
+        Hashtable<Integer, String> nestedCollectionDetails = new Hashtable<>();
+
+        Integer childId;
+        String childName;
+        String newChildPath;
+        String childMediaType;
+
+        try {
+            stmtQuery = dbConnection.createStatement();
+            stmtUpdate = dbConnection.createStatement();
+
+            //retrieve all children from database
+            ResultSet rs = stmtQuery.executeQuery(String.format("SELECT Id, Name, MediaType FROM MediaItem WHERE ParentId = " + collectionId + ";"));
+            while (rs.next()) {
+                childId = (Integer)rs.getObject("Id");
+                childName = rs.getString("Name");
+                childMediaType = rs.getString("MediaType");
+
+                if (childMediaType.equals("Collection")) {
+                    newChildPath = collectionPath + childName + "/";
+                    nestedCollectionDetails.put(childId, newChildPath);
+                }
+                else
+                    newChildPath = collectionPath + childName;
+
+                //update all children
+                stmtUpdate.executeUpdate(String.format("UPDATE MediaItem SET RelPath = \'" + newChildPath + "\' WHERE Id = " + childId + ";"));
+            }
+
+            //update info for all nested collections
+            nestedCollectionDetails.forEach(this::updateChildMediaDetailsRecursive);
+        }
+        catch (Exception ex) {
+            System.out.println(ex);
+        }
     }
 }
