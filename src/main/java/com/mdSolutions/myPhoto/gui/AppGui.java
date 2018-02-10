@@ -9,10 +9,13 @@ import lombok.Setter;
 
 import javax.activity.InvalidActivityException;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.stream.Stream;
 
 public class AppGui {
@@ -353,5 +356,39 @@ public class AppGui {
         }
         else if (userChoice == JFileChooser.CANCEL_OPTION) { } //do nothing for now
         else {} //JFileChooser.ERROR_OPTION, do nothing for now
+    }
+
+    public void openAltApplication(MediaItem media) {
+
+        JFrame frame = new JFrame();
+        JFileChooser c = new JFileChooser("C:\\");
+
+        FileFilter filter = new FileNameExtensionFilter("exe", "exe");
+        c.setFileFilter(filter);
+        c.setMultiSelectionEnabled(false);
+        int userChoice = c.showDialog(frame, "Open With...");
+
+        if (userChoice == JFileChooser.APPROVE_OPTION) {
+            String filename = (c.getSelectedFile().getName());
+            String dir = (c.getCurrentDirectory().toString());
+
+            Runtime runtime = Runtime.getRuntime();     //getting Runtime object
+
+            try
+            {
+                String program = dir + "/" + filename;
+
+                runtime.exec(new String[] { program , media.getRelPath() });
+
+            }
+            catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+
+        }
+        else if (userChoice == JFileChooser.CANCEL_OPTION) { }  //do nothing for now
+        else {} //JFileChoose.ERROR_OPTION, do nothing for now
+
     }
 }

@@ -1,9 +1,6 @@
 package com.mdSolutions.myPhoto.gui;
 
-import com.mdSolutions.myPhoto.MediaCollection;
-import com.mdSolutions.myPhoto.MediaItem;
-import com.mdSolutions.myPhoto.MyPhoto;
-import com.mdSolutions.myPhoto.PhotoMedia;
+import com.mdSolutions.myPhoto.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +13,9 @@ import java.awt.dnd.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.stream.Stream;
 
 
 /**
@@ -107,6 +107,18 @@ public class PanelDraggable extends JPanel implements Transferable,
                             mediaItem.setSelected(true);
                             viewPhotoInWindow();
                         }
+                        else if (mediaItem instanceof VideoMedia) {
+                            //TODO: Implement
+                        }
+                        else {  //unsupported media item
+                            displayRClickPopupMenu(e);
+                        }
+                    }
+                    //right click
+                    else if (SwingUtilities.isRightMouseButton(e)) {
+                        if (!(mediaItem instanceof MediaCollection)) {
+                            displayRClickPopupMenu(e);
+                        }
                     }
                 }
             }
@@ -152,6 +164,26 @@ public class PanelDraggable extends JPanel implements Transferable,
         appInstance.getCenterScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         appInstance.getCenterScrollPane().setBorder(BorderFactory.createMatteBorder(0,0,0,0, Color.white));
         appInstance.getCenterScrollPane().setViewportView(appInstance.getMediaViewPanel());
+    }
+
+    private void displayRClickPopupMenu(MouseEvent e) {
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem item1 = new JMenuItem("Open with Default App");
+        JMenuItem item2 = new JMenuItem("Open in Alt App...");
+
+        item1.addActionListener(a ->  {
+            try {
+                Desktop.getDesktop().open(new File(mediaItem.getRelPath()));
+            }
+            catch (IOException ex) {
+                System.out.println(ex);
+            }
+        });
+        item2.addActionListener(a -> AppGui.getInstance().openAltApplication(mediaItem));
+
+        popup.add(item1);
+        popup.add(item2);
+        popup.show(e.getComponent(), e.getX(), e.getY());
     }
 
     //The DataFlavor is a marker to let the DropTarget know how to
