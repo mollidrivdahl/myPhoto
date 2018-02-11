@@ -24,17 +24,14 @@ public class MediaItemDroppable extends PanelDroppable {
         setTransferHandler(new MediaItemDroppable.MediaItemTransferHandler());
     }
 
-    @Override
     public void addPanelDraggable(PanelDraggable panelDraggable) {
         this.panelDraggable = panelDraggable;
         add(panelDraggable);
     }
 
-    @Override
     public PanelDraggable getPanelDraggable() {
         return panelDraggable;
     }
-
 
     private void handleReorganization(Point p) {
         MediaItem leftConnection = null;
@@ -86,7 +83,7 @@ public class MediaItemDroppable extends PanelDroppable {
             if (!AppGui.getInstance().isMultiSelect()) {
                 AppGui.getInstance().getMyPhoto().getCurrentCollection().unselectAllChildren();
                 for (Component gridCell : AppGui.getInstance().getGridViewPanel().getComponents()) {
-                    ((GridCell) gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
+                    ((MediaItemDroppable)((GridCell) gridCell).getDropZonePanel()).getPanelDraggable().resetBorder();
                 }
             }
         }

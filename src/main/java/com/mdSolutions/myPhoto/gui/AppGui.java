@@ -12,8 +12,6 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -28,9 +26,12 @@ public class AppGui {
     public static final int MENU_WIDTH = WIN_WIDTH / 6;
     public static final int MAIN_WIDTH = WIN_WIDTH - MENU_WIDTH - WIN_BORDER_THICKNESS;
     public static final int PLAYBACK_HEIGHT = 50;
+    public static final int FB_ACTIONS_HEIGHT = 40;
     public static final Color MY_PURPLE = new Color(119, 21, 165);
     public static final Color MY_RED = new Color(242, 33, 65);
     public static final Color MY_BLUE = new Color(3, 147, 155);
+    public static final Color MY_GREEN = new Color(56, 182, 46);
+    public static final Color MY_ORANGE = new Color(212, 154, 0);
     public static final Color MY_GLOW = new Color(203, 205, 145);
 
 
@@ -44,6 +45,7 @@ public class AppGui {
     @Getter @Setter private JScrollPane centerScrollPane;
     @Getter @Setter private JPanel rightPanel;
     @Getter @Setter private JPanel bottomPanel;
+
     @Getter @Setter private JPanel mediaViewPanel;  //center panel replacement - for viewing & playback of the photos/videos
     @Getter @Setter private JPanel mediaDisplayPanel;   //viewing of photos/videos
     @Getter @Setter private JScrollPane mediaDisplayScrollPane;
@@ -51,10 +53,17 @@ public class AppGui {
     @Getter @Setter private JPanel photoPlaybackPanel;
     @Getter @Setter private JPanel videoPlaybackPanel;
 
+    @Getter @Setter private JPanel fbViewPanel; //center panel replacement - for viewing fb photo or video share folders
+    @Getter @Setter private JPanel fbGridDisplayPanel;  //grid viewing of fb photos or videos
+    @Getter @Setter private JScrollPane fbDisplayScrollPane;
+    @Getter @Setter private JPanel fbUploadPanel;   //fb login & upload action
+
     public AppGui() {
         myPhoto = new MyPhoto();
         isMultiSelect = false;
-        createPanels();
+        createStartupPanels();
+        createMediaDisplayPanels();
+        createFbDisplayPanels();
         initializePanels();
     }
 
@@ -65,7 +74,7 @@ public class AppGui {
         return _instance;
     }
 
-    private void createPanels() {
+    private void createStartupPanels() {
         windowPanel = new JPanel(new BorderLayout());
         windowPanel.setPreferredSize(new Dimension(WIN_WIDTH, WIN_HEIGHT));
 
@@ -93,6 +102,14 @@ public class AppGui {
         bottomPanel.setBackground(Color.gray);
         bottomPanel.setPreferredSize(new Dimension(WIN_WIDTH, WIN_BORDER_THICKNESS));
 
+        windowPanel.add(topPanel, BorderLayout.PAGE_START);
+        windowPanel.add(menuPanel, BorderLayout.LINE_START);
+        windowPanel.add(centerScrollPane, BorderLayout.CENTER);
+        windowPanel.add(rightPanel, BorderLayout.LINE_END);
+        windowPanel.add(bottomPanel, BorderLayout.PAGE_END);
+    }
+
+    private void createMediaDisplayPanels() {
         mediaViewPanel = new JPanel(new GridBagLayout());
         mediaViewPanel.setBackground(Color.black);
         mediaViewPanel.setPreferredSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
@@ -106,19 +123,41 @@ public class AppGui {
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         mediaDisplayScrollPane.setPreferredSize(new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - PLAYBACK_HEIGHT));
         mediaDisplayScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,3,5, MY_RED));
+
         mediaViewPanel.add(mediaDisplayScrollPane, c);
 
         mediaPlaybackPanel = new JPanel();
         mediaPlaybackPanel.setBorder(BorderFactory.createMatteBorder(0,5,5,5, MY_RED));
         mediaPlaybackPanel.setPreferredSize(new Dimension(MAIN_WIDTH, PLAYBACK_HEIGHT));
         c.gridx = 0; c.gridy = 1;
-        mediaViewPanel.add(mediaPlaybackPanel, c);
 
-        windowPanel.add(topPanel, BorderLayout.PAGE_START);
-        windowPanel.add(menuPanel, BorderLayout.LINE_START);
-        windowPanel.add(centerScrollPane, BorderLayout.CENTER);
-        windowPanel.add(rightPanel, BorderLayout.LINE_END);
-        windowPanel.add(bottomPanel, BorderLayout.PAGE_END);
+        mediaViewPanel.add(mediaPlaybackPanel, c);
+    }
+
+    private void createFbDisplayPanels() {
+        fbViewPanel = new JPanel(new GridBagLayout());
+        fbViewPanel.setBackground(Color.black);
+        fbViewPanel.setPreferredSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
+        GridBagConstraints c = new GridBagConstraints();
+
+        fbGridDisplayPanel = new JPanel(new MyFlowLayout(MyFlowLayout.LEADING, 0, 40));
+        fbGridDisplayPanel.setBackground(Color.black);
+        fbGridDisplayPanel.setSize(new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - FB_ACTIONS_HEIGHT));
+        c.gridx = 0; c.gridy = 0; c.fill = GridBagConstraints.BOTH; c.weightx = 1; c.weighty = 1;
+
+        fbDisplayScrollPane = new JScrollPane(fbGridDisplayPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        fbDisplayScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,3,5, MY_GREEN));
+        fbDisplayScrollPane.setPreferredSize(new Dimension(AppGui.MAIN_WIDTH, AppGui.MID_HEIGHT - FB_ACTIONS_HEIGHT));
+
+        fbViewPanel.add(fbDisplayScrollPane, c);
+
+        fbUploadPanel = new JPanel();
+        fbUploadPanel.setBorder(BorderFactory.createMatteBorder(0,5,5,5, MY_GREEN));
+        fbUploadPanel.setPreferredSize(new Dimension(MAIN_WIDTH, FB_ACTIONS_HEIGHT));
+        c.gridx = 0; c.gridy = 1;
+
+        fbViewPanel.add(fbUploadPanel, c);
     }
 
     private void initializePanels() {
@@ -133,6 +172,9 @@ public class AppGui {
 
         //--setup "viewing/playback" features of photo & video playback panels
         initializePlaybackPanels();
+
+        //--setup "fb login/upload" features of fb upload panel
+        initializeFbUploadPanel();
 
         //--add root collection's "media items" to center panel
         populateGridView(myPhoto.getCurrentCollection());
@@ -191,7 +233,7 @@ public class AppGui {
                 isMultiSelect = false;
                 myPhoto.getCurrentCollection().unselectAllChildren();
                 for (Component gridCell : gridViewPanel.getComponents()) {
-                    ((GridCell)gridCell).getDropZonePanel().getPanelDraggable().resetBorder();
+                    ((MediaItemDroppable)((GridCell)gridCell).getDropZonePanel()).getPanelDraggable().resetBorder();
                 }
             }
         });
@@ -237,6 +279,8 @@ public class AppGui {
             }
         });
 
+        FbShareFolderDroppable fbShareFolder = new FbShareFolderDroppable();
+
         menuPanel.add(btnCreateCollection);
         menuPanel.add(btnNavigateUp);
         menuPanel.add(btnImport);
@@ -245,6 +289,7 @@ public class AppGui {
         menuPanel.add(cbAutoOrganize);
         menuPanel.add(btnAutoOrganize);
         menuPanel.add(btnMoveUp);
+        menuPanel.add(fbShareFolder);
     }
 
     private void initializePlaybackPanels() {
@@ -291,6 +336,26 @@ public class AppGui {
         photoPlaybackPanel.add(sliderZoom);
 
         //TODO: add video playback features
+    }
+
+    private void initializeFbUploadPanel() {
+        JButton btnGoBack = new JButton("<-- Go Back");
+        btnGoBack.addActionListener(e -> {
+            //swap the grid view panel back into the center scroll pane
+            centerScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5, Color.white));
+            centerScrollPane.setViewportView(gridViewPanel);
+        });
+
+        JButton btnUploadMedia = new JButton("Upload Media");
+        btnUploadMedia.setBackground(MY_GREEN);
+        btnUploadMedia.addActionListener(e -> {
+            //TODO: Implement
+            System.out.println("Upload Media - UNIMPLEMENTED");
+        });
+
+        fbUploadPanel.add(btnGoBack);
+        fbUploadPanel.add(btnUploadMedia);
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {

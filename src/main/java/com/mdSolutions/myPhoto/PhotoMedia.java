@@ -22,6 +22,11 @@ public class PhotoMedia extends IndividualMedia {
         super();
     }
 
+    public PhotoMedia(String name, Integer id, String relPath, MediaItem nextItem, MediaItem previusItem,
+                      Integer parentId, String parentCollectionPath, int levelNum) {
+        super(name, id, relPath, nextItem, previusItem, parentId, parentCollectionPath, levelNum);
+    }
+
     @Override
     public BufferedImage view() {
         BufferedImage originalImg;
@@ -62,12 +67,6 @@ public class PhotoMedia extends IndividualMedia {
         return thumbnail;
     }
 
-    //TODO: Implement
-    @Override
-    public void editInAlternateApp() {
-
-    }
-
     public void rotate() {
         BufferedImage originalImg;
         BufferedImage newImg;
@@ -105,7 +104,7 @@ public class PhotoMedia extends IndividualMedia {
             image = new ImageIcon(tempFullSize);
         }
         catch (Exception ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
     }
 

@@ -6,6 +6,9 @@ public abstract class IndividualMedia extends MediaItem {
         super();
     }
 
-    public abstract void editInAlternateApp();
+    protected IndividualMedia(String name, Integer id, String relPath, MediaItem nextItem, MediaItem previusItem,
+                              Integer parentId, String parentCollectionPath, int levelNum) {
+        super(name, id, relPath, nextItem, previusItem, parentId, parentCollectionPath, levelNum);
+    }
 
 }

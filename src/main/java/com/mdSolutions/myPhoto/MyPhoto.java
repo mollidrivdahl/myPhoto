@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.stream.Stream;
 
@@ -126,6 +127,17 @@ public class MyPhoto {
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
+    public void copyToFacebook() {
+        ArrayList<IndividualMedia> fbMedia = new ArrayList<>();
+
+        currentCollection.getListOfChildren().stream()
+                .filter(MediaItem::isSelected)
+                .filter(i -> (i instanceof IndividualMedia))
+                .forEach(i -> fbMedia.add((IndividualMedia)i));
+
+        FbMediaUploader.getInstance().addMedia(fbMedia);
+    }
+
     /**
      * For non-gui related file system interaction
      */
@@ -143,7 +155,7 @@ public class MyPhoto {
                     return newDir;
             }
             catch(SecurityException ex){
-                System.out.println(ex);
+                System.out.println(ex.getMessage());
             }
 
             return null;    //directory failed to be created
@@ -154,7 +166,7 @@ public class MyPhoto {
                 Files.copy(importedFile.toPath(), new File(destDirPath + importedFile.getName()).toPath());
             }
             catch (IOException ex) {
-                System.out.println(ex);
+                System.out.println(ex.getMessage());
             }
         }
     }

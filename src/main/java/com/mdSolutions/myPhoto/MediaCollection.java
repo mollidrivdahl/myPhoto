@@ -334,7 +334,7 @@ public class MediaCollection extends MediaItem {
                         Files.move(new File(travel.relPath).toPath(), new File(destCollection.relPath + travel.name).toPath(), REPLACE_EXISTING);
                 }
                 catch (Exception ex) {
-                    System.out.println(ex);
+                    System.out.println(ex.getMessage());
                 }
 
                 MediaItem nextInList = travel.nextItem;

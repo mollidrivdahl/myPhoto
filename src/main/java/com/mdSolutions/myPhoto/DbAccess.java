@@ -367,7 +367,7 @@ public class DbAccess {
 
         }
         catch (SQLException ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -392,7 +392,7 @@ public class DbAccess {
             }
         }
         catch (SQLException ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
 
     }
@@ -451,7 +451,7 @@ public class DbAccess {
             }
         }
         catch (SQLException ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
 
     }
@@ -502,7 +502,7 @@ public class DbAccess {
             });
         }
         catch (Exception ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -536,7 +536,7 @@ public class DbAccess {
             }
         }
         catch (SQLException ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
 
         return true;
@@ -567,7 +567,7 @@ public class DbAccess {
             }
         }
         catch (SQLException ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
 
         return true;
@@ -585,7 +585,7 @@ public class DbAccess {
                 updateChildMediaDetailsRecursive(media.getId(), media.getRelPath());
         }
         catch (SQLException ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -625,7 +625,7 @@ public class DbAccess {
             nestedCollectionDetails.forEach(this::updateChildMediaDetailsRecursive);
         }
         catch (Exception ex) {
-            System.out.println(ex);
+            System.out.println(ex.getMessage());
         }
     }
 }

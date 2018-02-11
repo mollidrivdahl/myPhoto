@@ -65,7 +65,7 @@ public class GridCell extends JPanel {
             text.setPreferredSize(new Dimension(176, 25));
             prevName = text.getText();  //now new name
 
-            MediaItem item = dropPanel.getPanelDraggable().getMediaItem();
+            MediaItem item = ((MediaItemDroppable)dropPanel).getPanelDraggable().getMediaItem();
             File mediaFile = new File(item.getRelPath());
             item.setName(text.getText());
 

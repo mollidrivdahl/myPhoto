@@ -47,10 +47,6 @@ public abstract class PanelDroppable extends JPanel implements DropTargetListene
         finally{ dtde.dropComplete(true); }
     }
 
-    public abstract void addPanelDraggable(PanelDraggable mediaItemPanel);
-
-    public abstract PanelDraggable getPanelDraggable();
-
     protected abstract class MyTransferHandler extends TransferHandler{
 
         //tests for a valid PanelDraggable DataFlavor
