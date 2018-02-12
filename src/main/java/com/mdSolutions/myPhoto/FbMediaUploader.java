@@ -1,5 +1,6 @@
 package com.mdSolutions.myPhoto;
 
+import com.restfb.FacebookClient;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,10 +11,18 @@ public class FbMediaUploader {
 
     private static final String PHOTO_SHARE_FOLDER_PATH = "fbPhotoShareFolder";
     private static final String VIDEO_SHARE_FOLDER_PATH = "fbVideoShareFolder";
+    public static final String APP_ID = "1979842148933269";
+    public static final String APP_SECRET = "7fc9288403e0bce512dae74594bfc8b5";
+    public static final String APP_STATE = "stateMyPhoto723";   //made up
 
     private static FbMediaUploader _instance;
     private @Getter @Setter ArrayList<PhotoMedia> photos;
     private @Getter @Setter ArrayList<VideoMedia> videos;
+    private @Getter @Setter String appCode;
+    private @Getter @Setter String accessToken;
+    private @Getter @Setter String userId;
+    private @Getter @Setter FacebookClient fbClient;
+    private @Getter @Setter boolean loggedIn;
 
     private FbMediaUploader() {
         if (!MyPhoto.FileSystemAccess.fileExists(PHOTO_SHARE_FOLDER_PATH)) {

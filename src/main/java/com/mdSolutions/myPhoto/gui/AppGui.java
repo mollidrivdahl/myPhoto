@@ -38,6 +38,8 @@ public class AppGui {
     private static AppGui _instance;
     @Getter @Setter private boolean isMultiSelect;
     @Getter @Setter private MyPhoto myPhoto;
+    @Getter @Setter private FbActionsModal fbDialog;
+
     @Getter @Setter private JPanel windowPanel;
     @Getter @Setter private JPanel topPanel;
     @Getter @Setter private JPanel menuPanel;       //left panel
@@ -61,6 +63,8 @@ public class AppGui {
     public AppGui() {
         myPhoto = new MyPhoto();
         isMultiSelect = false;
+        fbDialog = null;
+
         createStartupPanels();
         createMediaDisplayPanels();
         createFbDisplayPanels();
@@ -350,8 +354,10 @@ public class AppGui {
         JButton btnUploadMedia = new JButton("Upload Media");
         btnUploadMedia.setBackground(MY_GREEN);
         btnUploadMedia.addActionListener(e -> {
-            //TODO: Implement
-            System.out.println("Upload Media - UNIMPLEMENTED");
+            if (fbDialog == null)
+                fbDialog = new FbActionsModal();
+
+            fbDialog.display();
         });
 
         fbUploadPanel.add(btnGoBack);
