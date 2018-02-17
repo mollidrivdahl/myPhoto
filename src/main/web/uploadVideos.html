@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Videos to Facebook</title>
+    <script language="JavaScript">
+        function submitToJavaFx() {
+            var message = document.getElementById('message').value;
+
+            javaBridgeMember.uploadVideos(message);
+        }
+    </script>
+</head>
+<body>
+<header>
+    <h1>Upload Videos to Facebook</h1>
+</header>
+<main>
+    <label>Provide Message (Optional):</label>
+    <input id="message" />
+
+    <br/>
+
+    <input id="submit" type="button" value="Upload Videos" onclick="submitToJavaFx();" />
+</main>
+</body>
+</html>

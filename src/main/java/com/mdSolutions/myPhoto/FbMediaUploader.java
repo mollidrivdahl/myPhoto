@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 public class FbMediaUploader {
 
+    public static enum MEDIA_TYPE {PHOTOS, VIDEOS};
     private static final String PHOTO_SHARE_FOLDER_PATH = "fbPhotoShareFolder";
     private static final String VIDEO_SHARE_FOLDER_PATH = "fbVideoShareFolder";
     public static final String APP_ID = "1979842148933269";
@@ -18,6 +19,7 @@ public class FbMediaUploader {
     private static FbMediaUploader _instance;
     private @Getter @Setter ArrayList<PhotoMedia> photos;
     private @Getter @Setter ArrayList<VideoMedia> videos;
+    private @Getter @Setter MEDIA_TYPE uploadType;
     private @Getter @Setter String appCode;
     private @Getter @Setter String accessToken;
     private @Getter @Setter String userId;
@@ -41,6 +43,7 @@ public class FbMediaUploader {
 
         photos = new ArrayList<>();
         videos = new ArrayList<>();
+        uploadType = null;
     }
 
     public static FbMediaUploader getInstance() {

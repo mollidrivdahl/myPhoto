@@ -118,6 +118,8 @@ public class FbShareFolderDroppable extends PanelDroppable {
         guiInstance.getCenterScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         guiInstance.getCenterScrollPane().setBorder(BorderFactory.createMatteBorder(0,0,0,0, Color.white));
         guiInstance.getCenterScrollPane().setViewportView(guiInstance.getFbViewPanel());
+
+        FbMediaUploader.getInstance().setUploadType(FbMediaUploader.MEDIA_TYPE.PHOTOS);
     }
 
     private void displayVideoShareFolder() {
@@ -131,6 +133,8 @@ public class FbShareFolderDroppable extends PanelDroppable {
         guiInstance.getCenterScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         guiInstance.getCenterScrollPane().setBorder(BorderFactory.createMatteBorder(0,0,0,0, Color.white));
         guiInstance.getCenterScrollPane().setViewportView(guiInstance.getFbViewPanel());
+
+        FbMediaUploader.getInstance().setUploadType(FbMediaUploader.MEDIA_TYPE.VIDEOS);
     }
 
     public void populateFbGridDisplay(AppGui guiInstance, ArrayList<IndividualMedia> mediaItems) {

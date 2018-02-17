@@ -1,9 +1,6 @@
 package com.mdSolutions.myPhoto.gui;
 
-import com.mdSolutions.myPhoto.MediaCollection;
-import com.mdSolutions.myPhoto.MediaItem;
-import com.mdSolutions.myPhoto.MyPhoto;
-import com.mdSolutions.myPhoto.PhotoMedia;
+import com.mdSolutions.myPhoto.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -349,6 +346,8 @@ public class AppGui {
             centerScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
             centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5, Color.white));
             centerScrollPane.setViewportView(gridViewPanel);
+
+            FbMediaUploader.getInstance().setUploadType(null);
         });
 
         JButton btnUploadMedia = new JButton("Upload Media");
@@ -357,7 +356,10 @@ public class AppGui {
             if (fbDialog == null)
                 fbDialog = new FbActionsModal();
 
-            fbDialog.display();
+            if (fbGridDisplayPanel.getComponents().length > 0)
+                fbDialog.display();
+            else
+                JOptionPane.showMessageDialog(null, "Must have at least one item to upload");
         });
 
         fbUploadPanel.add(btnGoBack);

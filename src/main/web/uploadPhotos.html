@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Photos to Facebook</title>
+    <script language="JavaScript">
+        function submitToJavaFx() {
+            var albumName = document.getElementById('albumName').value;
+            var message = document.getElementById('message').value;
+
+            if (albumName === "") {
+                document.getElementById('requiredName').style.display = 'inline';
+                return;
+            }
+
+            javaBridgeMember.uploadPhotos(albumName, message);
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Upload Photos to Facebook</h1>
+    </header>
+    <main>
+        <label>Provide Album Name:</label>
+        <input id="albumName" />
+        <label id="requiredName" style="display: none; color: red;">*Required</label>
+
+        <br/>
+
+        <label>Provide Message (Optional):</label>
+        <input id="message" />
+
+        <br/>
+
+        <input id="submit" type="button" value="Upload Photos" onclick="submitToJavaFx();" />
+    </main>
+</body>
+</html>

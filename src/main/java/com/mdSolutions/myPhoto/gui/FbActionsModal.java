@@ -12,9 +12,12 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.*;
+import netscape.javascript.JSObject;
 
 public class FbActionsModal {
 
@@ -53,20 +56,37 @@ public class FbActionsModal {
             fbJFXPanel.setScene(scene);
             engine = webView.getEngine();
 
+            // Enable Javascript.
+            engine.setJavaScriptEnabled(true);
+
+            //TODO: display progress bar while webpages load
+
             if (!FbMediaUploader.getInstance().isLoggedIn())
                 loginToFacebook();
             else {
-                //TODO: redirect to custom html screen
-                engine.load("https://www.google.com");
+                //redirect to custom html screen
+                try {
+                    File file = new File(getCustomHtmlScreen());
+                    URL url = file.toURI().toURL();
+                    engine.load(url.toString());
+                } catch (Exception ex) { System.out.println(ex.getMessage()); }
             }
 
             engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
                 if (Worker.State.SUCCEEDED.equals(newValue)) {
+                    //get current url
                     curUrl = engine.getLocation();
 
-                    //TODO: change this url to my custom html page
-                    if (curUrl.contains("www.google.com")) {
+                    //url of custom html page
+                    if (curUrl.contains(getCustomHtmlScreen())) {
                         webView.setVisible(true);
+
+                        // Get window object of page.
+                        JSObject jsobj = (JSObject) engine.executeScript("window");
+
+                        // Set member for 'window' object.
+                        // In Javascript access: window.javaBridgeMember....
+                        jsobj.setMember("javaBridgeMember", new BridgeFromHtmlToJava());
                     }
 
                     //redirect from login, returning app code
@@ -165,8 +185,12 @@ public class FbActionsModal {
             FbMediaUploader.getInstance().setUserId(fullJSON.get("id").toString());
             System.out.println(FbMediaUploader.getInstance().getUserId());
 
-            //TODO: redirect to custom html screen
-            engine.load("https://www.google.com");
+            //redirect to custom html screen
+            try {
+                File file = new File(getCustomHtmlScreen());
+                URL url = file.toURI().toURL();
+                engine.load(url.toString());
+            } catch (Exception ex) { System.out.println(ex.getMessage()); }
 
             finalizeLoginDetails();
         }
@@ -192,4 +216,31 @@ public class FbActionsModal {
         fbDialog.setVisible(true);
     }
 
+    private String getCustomHtmlScreen() {
+        String htmlUploadPhotos = "src/main/web/uploadPhotos.html";
+        String htmlUploadVideos = "src/main/web/uploadVideos.html";
+
+        if (FbMediaUploader.getInstance().getUploadType() == FbMediaUploader.MEDIA_TYPE.PHOTOS)
+            return htmlUploadPhotos;
+        else
+            return htmlUploadVideos;
+    }
+
+    public class BridgeFromHtmlToJava {
+
+        BridgeFromHtmlToJava() {}
+
+        //called from uploadPhotos.html
+        public void uploadPhotos(String albumName, String message) {
+            System.out.println(albumName);
+            System.out.println(message);
+            System.out.println("Upload Photos");
+        }
+
+        //called from uploadVideos.html
+        public void uploadVideos(String message) {
+            System.out.println(message);
+            System.out.println("Upload Videos");
+        }
+    }
 }
