@@ -1,9 +1,11 @@
 package com.mdSolutions.myPhoto.gui;
 
 import com.mdSolutions.myPhoto.FbMediaUploader;
-import com.restfb.DefaultFacebookClient;
-import com.restfb.FacebookClient;
-import com.restfb.types.User;
+import com.mdSolutions.myPhoto.PhotoMedia;
+import com.mdSolutions.myPhoto.VideoMedia;
+import com.restfb.*;
+import com.restfb.types.Album;
+import com.restfb.types.GraphResponse;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.embed.swing.JFXPanel;
@@ -13,7 +15,10 @@ import javafx.scene.web.WebView;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URL;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.*;
@@ -86,7 +91,7 @@ public class FbActionsModal {
 
                         // Set member for 'window' object.
                         // In Javascript access: window.javaBridgeMember....
-                        jsobj.setMember("javaBridgeMember", new BridgeFromHtmlToJava());
+                        jsobj.setMember("javaBridgeMember", new BridgeFromJavaScriptToJavaFx());
                     }
 
                     //redirect from login, returning app code
@@ -104,7 +109,6 @@ public class FbActionsModal {
                     //getting http request for user id
                     else if (curUrl.contains("https://graph.facebook.com/me?fields=id&access_token=")) {
                         String html = (String) engine.executeScript("document.documentElement.outerHTML");
-                        System.out.println(html);
                         parseUserIdJSON(html);
                     }
                 }
@@ -137,7 +141,6 @@ public class FbActionsModal {
         if (matcher.find())
         {
             FbMediaUploader.getInstance().setAppCode(matcher.group(1));
-            System.out.println(FbMediaUploader.getInstance().getAppCode());
 
             getAccessToken(engine);
         }
@@ -162,7 +165,6 @@ public class FbActionsModal {
 
             JSONObject fullJSON = new JSONObject("{" + innerJSON + "}");
             FbMediaUploader.getInstance().setAccessToken(fullJSON.get("access_token").toString());
-            System.out.println(FbMediaUploader.getInstance().getAccessToken());
 
             getUserId(engine);
         }
@@ -183,7 +185,6 @@ public class FbActionsModal {
 
             JSONObject fullJSON = new JSONObject("{" + innerJSON + "}");
             FbMediaUploader.getInstance().setUserId(fullJSON.get("id").toString());
-            System.out.println(FbMediaUploader.getInstance().getUserId());
 
             //redirect to custom html screen
             try {
@@ -202,18 +203,6 @@ public class FbActionsModal {
 
         FacebookClient client = new DefaultFacebookClient(FbMediaUploader.getInstance().getAccessToken(), com.restfb.Version.LATEST);
         fbUploader.setFbClient(client);
-
-        //TODO: remove restFB practice of getting user information
-        User me = fbUploader.getFbClient().fetchObject("me", User.class);
-        System.out.println(me.getName());
-    }
-
-    public void display() {
-        startJfxPlatformRunnable(); //ensures webview stuff runs on a separate javafx thread
-
-        fbDialog.pack();
-        fbDialog.setLocationRelativeTo(null);
-        fbDialog.setVisible(true);
     }
 
     private String getCustomHtmlScreen() {
@@ -226,21 +215,55 @@ public class FbActionsModal {
             return htmlUploadVideos;
     }
 
-    public class BridgeFromHtmlToJava {
+    public void display() {
+        startJfxPlatformRunnable(); //ensures webview stuff runs on a separate javafx thread
 
-        BridgeFromHtmlToJava() {}
+        fbDialog.pack();
+        fbDialog.setLocationRelativeTo(null);
+        fbDialog.setVisible(true);
+    }
+
+    public class BridgeFromJavaScriptToJavaFx {
+
+        BridgeFromJavaScriptToJavaFx() {}
 
         //called from uploadPhotos.html
         public void uploadPhotos(String albumName, String message) {
-            System.out.println(albumName);
-            System.out.println(message);
-            System.out.println("Upload Photos");
+            //redirect to upload custom html loading screen
+            try {
+                File file = new File("src/main/web/uploadingMedia.html");
+                URL url = file.toURI().toURL();
+                engine.load(url.toString());
+            } catch (Exception ex) { System.out.println(ex.getMessage()); }
+
+
+            Thread uploadThread = new Thread(() -> {
+                FbMediaUploader.getInstance().uploadPhotos(albumName, message);
+
+                //close webview
+                fbDialog.setVisible(false);
+            });
+
+            uploadThread.start();
         }
 
         //called from uploadVideos.html
         public void uploadVideos(String message) {
-            System.out.println(message);
-            System.out.println("Upload Videos");
+            //redirect to upload custom html loading screen
+            try {
+                File file = new File("src/main/web/uploadingMedia.html");
+                URL url = file.toURI().toURL();
+                engine.load(url.toString());
+            } catch (Exception ex) { System.out.println(ex.getMessage()); }
+
+            Thread uploadThread = new Thread(() -> {
+                FbMediaUploader.getInstance().uploadVideos(message);
+
+                //close webview
+                fbDialog.setVisible(false);
+            });
+
+            uploadThread.start();
         }
     }
 }

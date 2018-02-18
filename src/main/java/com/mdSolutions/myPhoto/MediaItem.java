@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 public abstract class MediaItem implements Serializable{
 
-    //TODO: update supported types
+    //TODO: update supported types (plus support case-sensitive)
     static final String[] supportedPhotoTypes = new String[] { "jpg", "jpeg", "png" };
     static final String[] supportedVideoTypes = new String[] { "mp4", "wav" };
 
