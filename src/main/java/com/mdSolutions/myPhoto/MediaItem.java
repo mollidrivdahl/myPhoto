@@ -6,13 +6,15 @@ import lombok.Setter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public abstract class MediaItem implements Serializable{
 
-    //TODO: update supported types (plus support case-sensitive)
-    static final String[] supportedPhotoTypes = new String[] { "jpg", "jpeg", "png" };
-    static final String[] supportedVideoTypes = new String[] { "mp4", "wav" };
+    //TODO: support case-insensitive
+    static final String[] supportedPhotoTypes = new String[] { "jpg", "jpeg", "png", "gif", "bmp", "wbmp" };
+    static final String[] supportedVideoTypes = new String[] { "mp4", "mpeg", "wav", "swf", "mov" };
 
     @Getter @Setter protected String name;
     @Getter @Setter protected Integer id;
@@ -88,9 +90,9 @@ public abstract class MediaItem implements Serializable{
 
         //check extension against supported types
         if (ext != null) {
-            if (Arrays.asList(supportedPhotoTypes).contains(ext))
+            if (containsCaseInsensitive(ext, Arrays.asList(supportedPhotoTypes)))
                 return new PhotoMedia();
-            else if (Arrays.asList(supportedVideoTypes).contains(ext))
+            else if (containsCaseInsensitive(ext, Arrays.asList(supportedVideoTypes)))
                 return new VideoMedia();
         }
 
@@ -106,5 +108,9 @@ public abstract class MediaItem implements Serializable{
             return "Video";
         else
             return "Unsupported";
+    }
+
+    private static boolean containsCaseInsensitive(String s, List<String> l){
+        return l.stream().anyMatch(x -> x.equalsIgnoreCase(s));
     }
 }

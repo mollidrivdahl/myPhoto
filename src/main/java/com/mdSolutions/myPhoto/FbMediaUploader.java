@@ -13,11 +13,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FbMediaUploader {
 
-    public enum MEDIA_TYPE {PHOTOS, VIDEOS};
+    static final String[] uploadablePhotoTypes = new String[] { "jpg", "jpeg", "png", "gif", "bmp", "wbmp", "tiff", "tif" };
+    static final String[] uploadableVideoTypes = new String[] { "3g2", "3gp", "3gpp", "asf", "avi", "dat", "divx", "dv", "f4v",
+                                                                "flv", "m2ts", "m4v", "mkv", "mod", "mov", "mp4", "mpe", "mpeg",
+                                                                "mpeg4", "mpg", "mts", "nsv", "ogm", "ogv", "qt", "tod", "ts",
+                                                                "vob", "wmv" };
+    public enum MEDIA_TYPE {PHOTOS, VIDEOS}
+
     private static final String PHOTO_SHARE_FOLDER_PATH = "fbPhotoShareFolder";
     private static final String VIDEO_SHARE_FOLDER_PATH = "fbVideoShareFolder";
     public static final String APP_ID = "1979842148933269";
@@ -67,27 +74,31 @@ public class FbMediaUploader {
             //TODO: only add media if the extension type is supported for upload to facebook (according to proposal)
             //TODO: add support for uploading UnsupportedMedia if the extension is supported for upload to facebook
 
-            if (media instanceof PhotoMedia) {
-                PhotoMedia newPhoto = new PhotoMedia(media.getName(), media.getId(), PHOTO_SHARE_FOLDER_PATH + "/" + media.getName(),
-                        null, null, null, null, -1);
+            if (isUploadable(media)) {
+                //treat as a photo
+                if (isExtPhotoType(media)) {
+                    PhotoMedia newPhoto = new PhotoMedia(media.getName(), media.getId(), PHOTO_SHARE_FOLDER_PATH + "/" + media.getName(),
+                            null, null, null, null, -1);
 
-                photos.add(newPhoto);
+                    photos.add(newPhoto);
 
-                MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), PHOTO_SHARE_FOLDER_PATH + "/");
+                    MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), PHOTO_SHARE_FOLDER_PATH + "/");
 
-                File newMediaFile = new File(newPhoto.getRelPath());
-                newMediaFile.deleteOnExit();
-            }
-            else if (media instanceof VideoMedia) {
-                VideoMedia newVideo = new VideoMedia(media.getName(), media.getId(), VIDEO_SHARE_FOLDER_PATH + "/" + media.getName(),
-                        null, null, null, null, -1);
+                    File newMediaFile = new File(newPhoto.getRelPath());
+                    newMediaFile.deleteOnExit();
+                }
+                //treat as a video
+                else  {
+                    VideoMedia newVideo = new VideoMedia(media.getName(), media.getId(), VIDEO_SHARE_FOLDER_PATH + "/" + media.getName(),
+                            null, null, null, null, -1);
 
-                videos.add(newVideo);
+                    videos.add(newVideo);
 
-                MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), VIDEO_SHARE_FOLDER_PATH + "/");
+                    MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), VIDEO_SHARE_FOLDER_PATH + "/");
 
-                File newMediaFile = new File(newVideo.getRelPath());
-                newMediaFile.deleteOnExit();
+                    File newMediaFile = new File(newVideo.getRelPath());
+                    newMediaFile.deleteOnExit();
+                }
             }
         }
     }
@@ -182,5 +193,51 @@ public class FbMediaUploader {
                 System.out.println(ex.getMessage());
             }
         }
+    }
+
+    private boolean isUploadable(IndividualMedia media) {
+        String name = media.getName();
+        String ext;
+
+        //extract extension from name
+        try {
+            ext = name.substring(name.lastIndexOf(".") + 1);
+        }
+        catch (Exception e) {
+            ext = null;
+        }
+
+        //check extension against uploadable types
+        if (ext != null) {
+            if (containsCaseInsensitive(ext, Arrays.asList(uploadablePhotoTypes)))
+                return true;
+            else if (containsCaseInsensitive(ext, Arrays.asList(uploadableVideoTypes)))
+                return true;
+        }
+
+        return false;
+    }
+
+    private boolean isExtPhotoType(IndividualMedia media) {
+        String name = media.getName();
+        String ext;
+
+        //extract extension from name
+        try {
+            ext = name.substring(name.lastIndexOf(".") + 1);
+        }
+        catch (Exception e) {
+            ext = null;
+        }
+
+        //check extension against uploadable types
+        if (ext != null && containsCaseInsensitive(ext, Arrays.asList(uploadablePhotoTypes)))
+            return true;
+
+        return false;
+    }
+
+    private boolean containsCaseInsensitive(String s, List<String> l){
+        return l.stream().anyMatch(x -> x.equalsIgnoreCase(s));
     }
 }
