@@ -3,6 +3,7 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.*;
 import lombok.Getter;
 import lombok.Setter;
+import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.activity.InvalidActivityException;
 import javax.swing.*;
@@ -336,7 +337,27 @@ public class AppGui {
         photoPlaybackPanel.add(btnRotateCW);
         photoPlaybackPanel.add(sliderZoom);
 
-        //TODO: add video playback features
+        JButton btnReturn = new JButton("<-- Go Back");
+        btnReturn.addActionListener(e -> {
+            //release media player resources
+            ((EmbeddedMediaPlayerComponent)mediaDisplayPanel.getComponent(0)).release();
+
+            //remove the image and viewing playback features from corresponding panels
+            mediaDisplayPanel.removeAll();
+            mediaPlaybackPanel.remove(videoPlaybackPanel);
+            myPhoto.getCurrentCollection().unselectAllChildren();
+
+            //replace scrollbar as needed to media display scroll pane
+            mediaDisplayScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+            mediaDisplayScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+            //swap the grid view panel back into the center scroll pane
+            centerScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5, Color.white));
+            centerScrollPane.setViewportView(gridViewPanel);
+        });
+
+        videoPlaybackPanel.add(btnReturn);
     }
 
     private void initializeFbUploadPanel() {

@@ -12,9 +12,8 @@ import java.util.List;
 
 public abstract class MediaItem implements Serializable{
 
-    //TODO: support case-insensitive
     static final String[] supportedPhotoTypes = new String[] { "jpg", "jpeg", "png", "gif", "bmp", "wbmp" };
-    static final String[] supportedVideoTypes = new String[] { "mp4", "mpeg", "wav", "swf", "mov" };
+    static final String[] supportedVideoTypes = new String[] { "mp4", "mpeg", "wav", "swf", "mov", "wmv", "m4v" };
 
     @Getter @Setter protected String name;
     @Getter @Setter protected Integer id;

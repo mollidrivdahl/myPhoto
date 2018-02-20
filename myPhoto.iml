@@ -23,5 +23,10 @@
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.projectlombok:lombok:1.16.18" level="project" />
     <orderEntry type="library" name="Maven: com.restfb:restfb:2.1.1" level="project" />
+    <orderEntry type="library" name="Maven: xuggle:xuggle-xuggler:5.4" level="project" />
+    <orderEntry type="library" name="Maven: uk.co.caprica:vlcj:3.10.1" level="project" />
+    <orderEntry type="library" name="Maven: net.java.dev.jna:jna:4.1.0" level="project" />
+    <orderEntry type="library" name="Maven: net.java.dev.jna:jna-platform:4.1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.10" level="project" />
   </component>
 </module>

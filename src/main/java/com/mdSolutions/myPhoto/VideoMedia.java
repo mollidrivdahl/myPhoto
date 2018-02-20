@@ -1,6 +1,17 @@
 package com.mdSolutions.myPhoto;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
+
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.media.*;
+import javafx.stage.Stage;
+
+import javax.swing.*;
 
 public class VideoMedia extends IndividualMedia {
 
@@ -19,5 +30,8 @@ public class VideoMedia extends IndividualMedia {
         return null;
     }
 
+    public String play() {
+        return relPath;
+    }
 }
 

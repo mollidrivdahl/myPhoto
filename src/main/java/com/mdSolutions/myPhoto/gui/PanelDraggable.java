@@ -15,7 +15,6 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.stream.Stream;
 
 
 /**
@@ -108,7 +107,8 @@ public class PanelDraggable extends JPanel implements Transferable,
                             viewPhotoInWindow();
                         }
                         else if (mediaItem instanceof VideoMedia) {
-                            //TODO: Implement
+                            mediaItem.setSelected(true);
+                            MyMediaPlayer player = new MyMediaPlayer((VideoMedia)mediaItem);
                         }
                         else {  //unsupported media item
                             displayRClickPopupMenu(e);

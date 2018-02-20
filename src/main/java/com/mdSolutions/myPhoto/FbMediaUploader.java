@@ -71,9 +71,7 @@ public class FbMediaUploader {
 
     public void addMedia(ArrayList<IndividualMedia> selectedMedia) {
         for (IndividualMedia media : selectedMedia) {
-            //TODO: only add media if the extension type is supported for upload to facebook (according to proposal)
-            //TODO: add support for uploading UnsupportedMedia if the extension is supported for upload to facebook
-
+            //only add media if it is supported for upload to Facebook
             if (isUploadable(media)) {
                 //treat as a photo
                 if (isExtPhotoType(media)) {
