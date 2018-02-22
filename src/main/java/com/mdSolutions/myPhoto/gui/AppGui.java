@@ -3,16 +3,19 @@ package com.mdSolutions.myPhoto.gui;
 import com.mdSolutions.myPhoto.*;
 import lombok.Getter;
 import lombok.Setter;
-import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.activity.InvalidActivityException;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.stream.Stream;
+import java.util.List;
 
 public class AppGui {
 
@@ -45,6 +48,8 @@ public class AppGui {
     @Getter @Setter private JScrollPane centerScrollPane;
     @Getter @Setter private JPanel rightPanel;
     @Getter @Setter private JPanel bottomPanel;
+
+    @Getter @Setter private JPanel importViewPanel; //center panel replacement - for importing medi
 
     @Getter @Setter private JPanel mediaViewPanel;  //center panel replacement - for viewing & playback of the photos/videos
     @Getter @Setter private JPanel mediaDisplayPanel;   //viewing of photos/videos
@@ -214,13 +219,74 @@ public class AppGui {
         btnImport.setText("<html>Import<br/>Media</html>");
         btnImport.setPreferredSize(new Dimension(100, 37));
         btnImport.addActionListener(e -> {
-            //TODO: change to importView
+            //setup import view
+            importViewPanel = new JPanel();
+            importViewPanel.setBackground(Color.black);
+            importViewPanel.setPreferredSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
 
-            //TODO: provide option for either the browse file system OR drag n drop method of import
-            browseFileSystem();
-            populateGridView(myPhoto.getCurrentCollection());
+            //add button to browse file system
+            JButton btnBrowseFileSystem = new JButton("Browse File System...");
+            btnBrowseFileSystem.addActionListener(a -> browseFileSystem() );
+            importViewPanel.add(btnBrowseFileSystem);
 
-            //TODO: change back to gridView of root collection by clicking diff button
+            //add drop zone to drag n drop files into app
+            JList dropAreaImport = new JList(new DefaultListModel());
+            TransferHandler handler =   new TransferHandler() {
+
+                @Override
+                public boolean canImport(TransferHandler.TransferSupport info) {
+                    // we only import FileList
+                    return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+                }
+
+                @Override
+                public boolean importData(TransferHandler.TransferSupport info) {
+                    if (!info.isDrop()) {
+                        return false;
+                    }
+
+                    // Check for FileList flavor
+                    if (!info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                        System.out.println("List doesn't accept a drop of this type.");
+                        return false;
+                    }
+
+                    // Get the fileList that is being dropped.
+                    Transferable t = info.getTransferable();
+                    List<File> data;
+                    try {
+                        data = (List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
+                    }
+                    catch (Exception e) { return false; }
+                    DefaultListModel model = (DefaultListModel) dropAreaImport.getModel();
+                    for (File file : data) {
+                        model.addElement(file);
+                    }
+                    return true;
+                }
+            };
+            dropAreaImport.setDragEnabled(true);
+            dropAreaImport.setPreferredSize(new Dimension(500, 700));
+            dropAreaImport.setTransferHandler(handler);
+            JScrollPane dropAreaScrollPane = new JScrollPane(dropAreaImport, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            importViewPanel.add(dropAreaScrollPane);
+
+            //add button to import the media files in the drop zone
+            JButton btnImportDroppedFiles = new JButton("Import Dropped Files");
+            btnImportDroppedFiles.addActionListener(a -> importDroppedFiles(dropAreaImport));
+            importViewPanel.add(btnImportDroppedFiles);
+
+            //add button to change back to gridView of root collection
+            JButton btnGridView = new JButton("Return to Root Collection");
+            btnGridView.addActionListener(a -> {
+                populateGridView(myPhoto.getCurrentCollection());   //current collection already changed to root collection
+                centerScrollPane.setViewportView(gridViewPanel);
+            });
+            importViewPanel.add(btnGridView);
+
+            //change to importView
+            centerScrollPane.setViewportView(importViewPanel);
         });
 
         //"multi select" checkbox
@@ -430,6 +496,20 @@ public class AppGui {
         else {} //JFileChooser.ERROR_OPTION, do nothing for now
     }
 
+    public void importDroppedFiles(JList fileList) {
+        DefaultListModel fileListModel = (DefaultListModel) fileList.getModel();
+        ArrayList<File> droppedFiles = new ArrayList<>();
+
+        for (int i = 0; i < fileListModel.getSize(); i++) {
+            File file = new File(fileListModel.getElementAt(i).toString());
+            droppedFiles.add(file);
+        }
+
+        //copy files into myPhoto directory and follow import procedures
+        myPhoto.importMedia(droppedFiles.toArray(new File[]{}));
+        fileListModel.clear();
+    }
+
     public void openAltApplication(MediaItem media) {
 
         JFrame frame = new JFrame();
@@ -461,6 +541,5 @@ public class AppGui {
         }
         else if (userChoice == JFileChooser.CANCEL_OPTION) { }  //do nothing for now
         else {} //JFileChoose.ERROR_OPTION, do nothing for now
-
     }
 }
