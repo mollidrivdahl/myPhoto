@@ -108,7 +108,7 @@ public class PanelDraggable extends JPanel implements Transferable,
                         }
                         else if (mediaItem instanceof VideoMedia) {
                             mediaItem.setSelected(true);
-                            MyMediaPlayer player = new MyMediaPlayer((VideoMedia)mediaItem);
+                            new MyMediaPlayer((VideoMedia)mediaItem, AppGui.getInstance().getVideoPlaybackPanel());
                         }
                         else {  //unsupported media item
                             displayRClickPopupMenu(e);

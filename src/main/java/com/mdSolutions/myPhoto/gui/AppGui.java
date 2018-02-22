@@ -296,7 +296,7 @@ public class AppGui {
 
     private void initializePlaybackPanels() {
         photoPlaybackPanel = new JPanel();
-        videoPlaybackPanel = new JPanel();
+        videoPlaybackPanel = new JPanel();  //later updated with components within MyMediaPlayer
 
         JButton btnGoBack = new JButton("<-- Go Back");
         btnGoBack.addActionListener(e -> {
@@ -336,28 +336,6 @@ public class AppGui {
         photoPlaybackPanel.add(btnGoBack);
         photoPlaybackPanel.add(btnRotateCW);
         photoPlaybackPanel.add(sliderZoom);
-
-        JButton btnReturn = new JButton("<-- Go Back");
-        btnReturn.addActionListener(e -> {
-            //release media player resources
-            ((EmbeddedMediaPlayerComponent)mediaDisplayPanel.getComponent(0)).release();
-
-            //remove the image and viewing playback features from corresponding panels
-            mediaDisplayPanel.removeAll();
-            mediaPlaybackPanel.remove(videoPlaybackPanel);
-            myPhoto.getCurrentCollection().unselectAllChildren();
-
-            //replace scrollbar as needed to media display scroll pane
-            mediaDisplayScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-            mediaDisplayScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-            //swap the grid view panel back into the center scroll pane
-            centerScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-            centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5, Color.white));
-            centerScrollPane.setViewportView(gridViewPanel);
-        });
-
-        videoPlaybackPanel.add(btnReturn);
     }
 
     private void initializeFbUploadPanel() {
