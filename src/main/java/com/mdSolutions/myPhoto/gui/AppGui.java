@@ -188,6 +188,8 @@ public class AppGui {
     }
 
     private void initializeMenuPanel() {
+        //TODO: Deactivate certain buttons in certain displays
+
         //"create collection" button
         JButton btnCreateCollection = new JButton();
         btnCreateCollection.setText("<html>Create<br/>Collection</html>");
@@ -472,7 +474,7 @@ public class AppGui {
         gridViewPanel.add(gridCell);
     }
 
-    public void browseFileSystem() {
+    private void browseFileSystem() {
 
         JFrame explorerFrame = new JFrame();
         String userHomeDir = System.getProperty("user.home");
@@ -496,7 +498,7 @@ public class AppGui {
         else {} //JFileChooser.ERROR_OPTION, do nothing for now
     }
 
-    public void importDroppedFiles(JList fileList) {
+    private void importDroppedFiles(JList fileList) {
         DefaultListModel fileListModel = (DefaultListModel) fileList.getModel();
         ArrayList<File> droppedFiles = new ArrayList<>();
 

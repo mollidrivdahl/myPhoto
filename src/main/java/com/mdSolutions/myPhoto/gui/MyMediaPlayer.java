@@ -9,18 +9,25 @@ import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 public class MyMediaPlayer {
 
     private VideoMedia videoMedia;
     private JPanel playbackPanel;
     private @Getter EmbeddedMediaPlayerComponent mediaPlayerComponent;
+    private boolean isReplay;
+    private JSlider sliderSeek;
+    private JLabel labelCurTime;
+    private JLabel labelFullLength;
 
     MyMediaPlayer() { }
 
     MyMediaPlayer(VideoMedia videoMedia, JPanel videoPlaybackPanel) {
         this.videoMedia = videoMedia;
         playbackPanel = videoPlaybackPanel;
+        isReplay = false;
         start();
     }
 
@@ -34,7 +41,8 @@ public class MyMediaPlayer {
             addButtonsToPlaybackPanel();
             addMediaPlayerEventListener();
 
-            mediaPlayerComponent.getMediaPlayer().playMedia(videoMedia.play());
+            isReplay = false;
+            mediaPlayerComponent.getMediaPlayer().playMedia(videoMedia.getRelPath());
         });
     }
 
@@ -42,6 +50,7 @@ public class MyMediaPlayer {
         JFrame mediaPlayerDialogFrame = new JFrame();
         JDialog mediaPlayerDialog = new JDialog(mediaPlayerDialogFrame, true);
         JLabel loadingLabel = new JLabel("Opening video...please wait");
+        JLabel replayLabel = new JLabel("Restarting video...please wait");
         JLabel errorLabel = new JLabel("Something went wrong");
 
         loadingLabel.setPreferredSize(new Dimension(200, 50));
@@ -53,19 +62,35 @@ public class MyMediaPlayer {
             @Override
             public void opening(MediaPlayer mediaPlayer) {
                 SwingUtilities.invokeLater(() -> {
-                    System.out.println("Opening video...please wait");
-                    mediaPlayerDialog.setContentPane(loadingLabel);
-                    mediaPlayerDialog.setLocationRelativeTo(null);
-                    mediaPlayerDialog.pack();
-                    mediaPlayerDialog.setVisible(true);
+                    if (!isReplay) {
+                        mediaPlayerDialog.setContentPane(loadingLabel);
+                        mediaPlayerDialog.setLocationRelativeTo(null);
+                        mediaPlayerDialog.pack();
+                        mediaPlayerDialog.setVisible(true);
+                        isReplay = true;
+                    }
+                    else {
+                        mediaPlayerDialog.setContentPane(replayLabel);
+                        mediaPlayerDialog.setLocationRelativeTo(null);
+                        mediaPlayerDialog.pack();
+                        mediaPlayerDialog.setVisible(true);
+                    }
                 });
             }
 
             @Override
             public void playing(MediaPlayer mediaPlayer) {
                 SwingUtilities.invokeLater(() -> {
-                    System.out.println("Video started playing");
                     mediaPlayerDialog.setVisible(false);
+                    labelFullLength.setText(convertTime(mediaPlayerComponent.getMediaPlayer().getLength()));
+                });
+            }
+
+            @Override
+            public void positionChanged(MediaPlayer mediaPlayer, float newPosition) {
+                SwingUtilities.invokeLater(() -> {
+                    labelCurTime.setText(convertTime(mediaPlayer.getTime()));
+                    sliderSeek.setValue(Math.round(newPosition * 100));
                 });
             }
 
@@ -127,32 +152,53 @@ public class MyMediaPlayer {
             appGui.getCenterScrollPane().setViewportView(appGui.getGridViewPanel());
         });
 
-        JButton btnPlay = new JButton("Play / Resume");
+        JButton btnPlay = new JButton("Play");
         btnPlay.addActionListener(e -> mediaPlayerComponent.getMediaPlayer().play());
 
-        JButton btnPause = new JButton("Pause");
+        JButton btnPause = new JButton("Pause / Resume");
         btnPause.addActionListener(e -> mediaPlayerComponent.getMediaPlayer().pause());
 
-        /*
-
-        rewindButton.addActionListener(new ActionListener() {
+        sliderSeek = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+        sliderSeek.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                mediaPlayerComponent.getMediaPlayer().skip(-10000);
+            public void mouseDragged(MouseEvent e) {
+                if (sliderSeek.getValue() / 100 < 1) {
+                    mediaPlayerComponent.getMediaPlayer().setPosition((float) sliderSeek.getValue() / 100);
+                    labelCurTime.setText(convertTime(mediaPlayerComponent.getMediaPlayer().getTime()));
+                }
             }
         });
 
-        skipButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mediaPlayerComponent.getMediaPlayer().skip(10000);
-            }
-        });
-
-        */
+        labelCurTime = new JLabel("00:00:00");
+        labelFullLength = new JLabel("00:00:00");
 
         playbackPanel.add(btnReturn);
         playbackPanel.add(btnPlay);
         playbackPanel.add(btnPause);
+        playbackPanel.add(labelCurTime);
+        playbackPanel.add(sliderSeek);
+        playbackPanel.add(labelFullLength);
+    }
+
+    private String convertTime(long curTime) {
+        double decimalSeconds = (double)curTime/1000;   //curTime is in milliseconds
+        int totalSeconds = (int)decimalSeconds;
+        int displaySeconds = totalSeconds % 60;
+        int totalMinutes = totalSeconds/60;
+        int totalHours = totalMinutes/60;
+        String strDisplaySeconds = Integer.toString(displaySeconds);
+        String strDisplayMinutes = Integer.toString(totalMinutes);
+        String strDisplayHours = Integer.toString(totalHours);
+
+        if (displaySeconds < 10)
+            strDisplaySeconds = "0" + Integer.toString(displaySeconds);
+
+        if (totalMinutes < 10)
+            strDisplayMinutes = "0" + Integer.toString(totalMinutes);
+
+        if (totalHours < 10)
+            strDisplayHours = "0" + Integer.toString(totalHours);
+
+        return strDisplayHours + ":" + strDisplayMinutes + ":" + strDisplaySeconds;
     }
 }

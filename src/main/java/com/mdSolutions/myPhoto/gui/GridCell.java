@@ -60,24 +60,34 @@ public class GridCell extends JPanel {
                 }
             }
         });
+
         btnSaveName.addActionListener(e -> {
             btnSaveName.setVisible(false);
             text.setPreferredSize(new Dimension(176, 25));
-            prevName = text.getText();  //now new name
 
             MediaItem item = ((MediaItemDroppable)dropPanel).getPanelDraggable().getMediaItem();
             File mediaFile = new File(item.getRelPath());
-            item.setName(text.getText());
+            String newName = text.getText();
+            String newPath;
 
             if (item instanceof MediaCollection)
-                item.setRelPath(item.getParentCollectionPath() + item.getName() + "/");
+                newPath = item.getParentCollectionPath() + newName + "/";
             else
-                item.setRelPath(item.getParentCollectionPath() + item.getName());
+                newPath = item.getParentCollectionPath() + newName;
 
-            DbAccess.getInstance().UpdateMediaNameAndPath(item);
-            System.out.println(mediaFile.renameTo(new File(item.getRelPath())));
+            if (mediaFile.renameTo(new File(newPath))){
+                item.setName(newName);
+                item.setRelPath(newPath);
+                DbAccess.getInstance().UpdateMediaNameAndPath(item);
+                prevName = text.getText();  //now new name
+            }
+            else {
+                System.out.println("Failed to rename file");
+                text.setText(prevName);
+            }
             isSaving = false;
         }); //TODO: add error checking to avoid renaming the extension type
+
         btnSaveName.addChangeListener(e -> {
             ButtonModel btnModel = ((AbstractButton)e.getSource()).getModel();
 
