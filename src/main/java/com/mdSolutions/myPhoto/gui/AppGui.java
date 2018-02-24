@@ -390,6 +390,19 @@ public class AppGui {
 
         FbShareFolderDroppable fbShareFolder = new FbShareFolderDroppable();
 
+        //"duplicate media" button
+        JButton btnDuplicate = new JButton();
+        btnDuplicate.setText("Duplicate Media");
+        btnDuplicate.addActionListener(e -> {
+            try {
+                myPhoto.createDuplicates();
+                populateGridView(myPhoto.getCurrentCollection());
+            }
+            catch (InvalidActivityException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage());
+            }
+        });
+
         menuPanel.add(btnCreateCollection);
         menuPanel.add(btnNavigateUp);
         menuPanel.add(btnImport);
@@ -398,6 +411,7 @@ public class AppGui {
         menuPanel.add(cbAutoOrganize);
         menuPanel.add(btnAutoOrganize);
         menuPanel.add(btnMoveUp);
+        menuPanel.add(btnDuplicate);
         menuPanel.add(fbShareFolder);
     }
 

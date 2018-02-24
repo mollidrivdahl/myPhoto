@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.stream.Stream;
 
 public class DbAccess {
 
@@ -623,6 +624,47 @@ public class DbAccess {
 
             //update info for all nested collections
             nestedCollectionDetails.forEach(this::updateChildMediaDetailsRecursive);
+        }
+        catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public void addAndUpdateChildMedia(MediaCollection currentCollection) {
+        Statement stmt;
+        MediaItem newMedia;
+        int newId = -1;
+        String mediaType;
+        String strNextItemId;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            //iterate over the selected "originalMedia" items -> the "newMedia" is always the next item of the original
+            Stream<MediaItem> selectedMedia = currentCollection.getListOfChildren().stream().filter(MediaItem::isSelected);
+            for (MediaItem originalMedia : (Iterable<MediaItem>) selectedMedia::iterator) {
+                newMedia = originalMedia.nextItem;
+                mediaType = MediaItem.getConcreteType(newMedia);
+
+                //insert new media into database
+                if (newMedia.getNextItem() == null)
+                    strNextItemId = "null";
+                else
+                    strNextItemId = newMedia.getNextItem().getId().toString();
+
+                stmt.executeUpdate(String.format("INSERT INTO MediaItem(Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum, MediaType)" +
+                        "VALUES(\'" + newMedia.getName() + "\',\'" + newMedia.getRelPath() + "\'," + newMedia.getParentId() +
+                        "," + strNextItemId + "," + originalMedia.getId() + "," + newMedia.getLevelNum() + ", \'" + mediaType + "\' );"));
+
+                //retrieve value for id of newly inserted media item
+                newId = stmt.getGeneratedKeys().getInt(1);
+
+                //reconnect the surrounding media items
+                if (newMedia.getNextItem() != null)
+                    stmt.executeUpdate(String.format("UPDATE MediaItem SET PrevItemId = " + newId + " WHERE Id = " + strNextItemId + ";"));
+
+                stmt.executeUpdate(String.format("UPDATE MediaItem SET NextItemId = " + newId + " WHERE Id = " + originalMedia.getId() + ";"));
+            }
         }
         catch (Exception ex) {
             System.out.println(ex.getMessage());

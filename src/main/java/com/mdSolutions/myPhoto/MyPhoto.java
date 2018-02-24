@@ -2,6 +2,7 @@ package com.mdSolutions.myPhoto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.sqlite.core.DB;
 
 import javax.activity.InvalidActivityException;
 import java.io.File;
@@ -138,6 +139,22 @@ public class MyPhoto {
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
+    public void createDuplicates() throws InvalidActivityException {
+        //if any of the selected items are collections, throw error
+        if (getCurrentCollection().getListOfChildren().stream()
+                .filter(MediaItem::isSelected)
+                .anyMatch(i -> i instanceof MediaCollection))
+        {
+            throw new InvalidActivityException("Cannot duplicate media - one or more items are collections");
+        }
+
+        currentCollection.duplicateMedia();
+        DbAccess.getInstance().addAndUpdateChildMedia(currentCollection);
+        DbAccess.getInstance().refreshCurrentCollection(currentCollection, currentCollection.getId());
+
+        currentCollection.unselectAllChildren();
+    }
+
     public void copyToFacebook() {
         ArrayList<IndividualMedia> fbMedia = new ArrayList<>();
 
@@ -179,6 +196,16 @@ public class MyPhoto {
             catch (IOException ex) {
                 System.out.println(ex.getMessage());
                 throw new InvalidActivityException(importedFile.toPath().toString());
+            }
+        }
+
+        static void copyForDuplicate(File originalFile, File newFile) throws InvalidActivityException {
+            try {
+                Files.copy(originalFile.toPath(), newFile.toPath());
+            }
+            catch (IOException ex) {
+                System.out.println(ex.getMessage());
+                throw new InvalidActivityException(newFile.toPath().toString());
             }
         }
     }

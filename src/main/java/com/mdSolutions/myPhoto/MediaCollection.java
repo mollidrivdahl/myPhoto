@@ -1,5 +1,6 @@
 package com.mdSolutions.myPhoto;
 
+import com.restfb.types.Video;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -376,5 +377,76 @@ public class MediaCollection extends MediaItem {
         tailItem = priorUnselected;
 
         unselectAllChildren();
+    }
+
+    public void duplicateMedia() {
+        ArrayList<MediaItem> duplicatesToAdd = new ArrayList<>();
+        Stream<MediaItem> selectedMedia = listOfChildren.stream().filter(MediaItem::isSelected);
+
+        for (MediaItem media : (Iterable<MediaItem>) selectedMedia::iterator) {
+            if (media instanceof IndividualMedia) {
+                //create and initialize new duplicated instance
+                IndividualMedia newMedia = createDuplicate((IndividualMedia) media);
+
+                //add to listOfChildren
+                duplicatesToAdd.add(newMedia);
+
+                //if the original media was the tail item, make newMedia the tail item
+                if (media == tailItem)
+                    tailItem = newMedia;
+                //else set previous item of next item of original to new instance
+                else
+                    media.nextItem.previusItem = newMedia;
+
+                //set next item of original instance to new instance
+                media.nextItem = newMedia;
+
+                //create duplicate in file system
+                try { MyPhoto.FileSystemAccess.copyForDuplicate(new File(media.relPath), new File(newMedia.relPath)); }
+                catch (InvalidActivityException ex) { System.out.println(ex.getMessage()); }
+            }
+        }
+
+        listOfChildren.addAll(duplicatesToAdd);
+    }
+
+    private IndividualMedia createDuplicate(IndividualMedia originalMedia) {
+        IndividualMedia newMedia;
+        String ext = "";
+        String nameWithoutExt = "";
+        String pathWithoutExt = "";
+        String newName = "";
+        String newPath = "";
+
+        //extract extension from name
+        try {
+            ext = originalMedia.name.substring(originalMedia.name.lastIndexOf(".") + 1);
+            nameWithoutExt = originalMedia.name.substring(0, originalMedia.name.lastIndexOf("."));
+            pathWithoutExt = originalMedia.relPath.substring(0, originalMedia.relPath.lastIndexOf("."));
+        }
+        catch (Exception ex) { System.out.println(ex.getMessage()); }
+
+        //create new instance of duplicate media
+        if (originalMedia instanceof PhotoMedia) {
+            newMedia = new PhotoMedia(nameWithoutExt + " - Copy." + ext, -1, pathWithoutExt + " - Copy." + ext,
+                    originalMedia.nextItem, originalMedia, originalMedia.parentId, originalMedia.parentCollectionPath, originalMedia.levelNum);
+        }
+        else if (originalMedia instanceof VideoMedia) {
+            newMedia = new VideoMedia(nameWithoutExt + " - Copy." + ext, -1, pathWithoutExt + " - Copy." + ext,
+                    originalMedia.nextItem, originalMedia, originalMedia.parentId, originalMedia.parentCollectionPath, originalMedia.levelNum);
+        }
+        else {
+            newMedia = new UnsupportedMedia(nameWithoutExt + " - Copy." + ext, -1, pathWithoutExt + " - Copy." + ext,
+                    originalMedia.nextItem, originalMedia, originalMedia.parentId, originalMedia.parentCollectionPath, originalMedia.levelNum);
+        }
+
+        //rename if other copies already exist by same name
+        int count = 2;
+        while (MyPhoto.FileSystemAccess.fileExists(newMedia.relPath)) {
+            newMedia.name = nameWithoutExt + " - Copy (" + count + ")." + ext;
+            newMedia.relPath = pathWithoutExt + " - Copy(" + count + ")." + ext;
+        }
+
+        return newMedia;
     }
 }
