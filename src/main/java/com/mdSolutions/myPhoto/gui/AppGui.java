@@ -222,16 +222,40 @@ public class AppGui {
         btnImport.setPreferredSize(new Dimension(100, 37));
         btnImport.addActionListener(e -> {
             //setup import view
-            importViewPanel = new JPanel();
+            importViewPanel = new JPanel(new BorderLayout(30, 30));
             importViewPanel.setBackground(Color.black);
-            importViewPanel.setPreferredSize(new Dimension(MAIN_WIDTH, MID_HEIGHT));
+            importViewPanel.setPreferredSize(new Dimension(MAIN_WIDTH - 10, MID_HEIGHT - 10));
+
+            //create center panel
+            JPanel centerPanelOfLayout = new JPanel(new GridBagLayout());
+            centerPanelOfLayout.setBackground(Color.black);
+            GridBagConstraints c = new GridBagConstraints();
+            c.insets = new Insets(50,0,50,0);
 
             //add button to browse file system
             JButton btnBrowseFileSystem = new JButton("Browse File System...");
+            btnBrowseFileSystem.setPreferredSize(new Dimension(200, 100));
             btnBrowseFileSystem.addActionListener(a -> browseFileSystem() );
-            importViewPanel.add(btnBrowseFileSystem);
+            c.gridx = 0; c.gridy = 0; c.weightx = 1; c.weighty = 1; c.gridheight = 1;
+            centerPanelOfLayout.add(btnBrowseFileSystem, c);
+
+            //add title to center-center
+            JLabel labelImport = new JLabel("\u2191 \u0009 Choose Import Method \u0009 \u2193");
+            labelImport.setFont(new Font("Import Title", 1, 20));
+            labelImport.setForeground(Color.white);
+            c.gridx = 0; c.gridy = 1; c.gridheight = 1;
+            centerPanelOfLayout.add(labelImport, c);
 
             //add drop zone to drag n drop files into app
+            JPanel bottomPanelOfCenterPanel = new JPanel(new GridBagLayout());
+            bottomPanelOfCenterPanel.setBackground(Color.black);
+            GridBagConstraints c2 = new GridBagConstraints();
+
+            JLabel labelDropArea = new JLabel("Drop Files Here:");
+            labelDropArea.setForeground(Color.white);
+            c2.gridx = 0; c2.gridy = 0; c2.weightx = 1; c2.weighty = 1; c2.gridheight = 1;
+            bottomPanelOfCenterPanel.add(labelDropArea, c2);
+
             JList dropAreaImport = new JList(new DefaultListModel());
             TransferHandler handler =   new TransferHandler() {
 
@@ -268,24 +292,39 @@ public class AppGui {
                 }
             };
             dropAreaImport.setDragEnabled(true);
-            dropAreaImport.setPreferredSize(new Dimension(500, 700));
+            dropAreaImport.setSize(new Dimension(800, 800));
             dropAreaImport.setTransferHandler(handler);
             JScrollPane dropAreaScrollPane = new JScrollPane(dropAreaImport, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            importViewPanel.add(dropAreaScrollPane);
+            c2.gridx = 0; c2.gridy = 1;
+            bottomPanelOfCenterPanel.add(dropAreaScrollPane, c2);
 
             //add button to import the media files in the drop zone
             JButton btnImportDroppedFiles = new JButton("Import Dropped Files");
+            btnImportDroppedFiles.setPreferredSize(new Dimension(160, 25));
             btnImportDroppedFiles.addActionListener(a -> importDroppedFiles(dropAreaImport));
-            importViewPanel.add(btnImportDroppedFiles);
+            c2.gridx = 0; c2.gridy = 2;
+            bottomPanelOfCenterPanel.add(btnImportDroppedFiles, c2);
+
+            c.gridx = 0; c.gridy = 2; c.gridheight = 3;
+            centerPanelOfLayout.add(bottomPanelOfCenterPanel, c);
+
+            importViewPanel.add(centerPanelOfLayout, BorderLayout.CENTER);
+
+            //create left panel
+            JPanel leftPanelOfLayout = new JPanel(new GridBagLayout());
+            leftPanelOfLayout.setPreferredSize(new Dimension(300, MID_HEIGHT - 10));
+            leftPanelOfLayout.setBackground(Color.black);
 
             //add button to change back to gridView of root collection
-            JButton btnGridView = new JButton("Return to Root Collection");
+            JButton btnGridView = new JButton("<html>Return to<br/>Root Collection</html>");
+            btnGridView.setPreferredSize(new Dimension(150, 75));
             btnGridView.addActionListener(a -> {
                 populateGridView(myPhoto.getCurrentCollection());   //current collection already changed to root collection
                 centerScrollPane.setViewportView(gridViewPanel);
             });
-            importViewPanel.add(btnGridView);
+            leftPanelOfLayout.add(btnGridView);
+            importViewPanel.add(leftPanelOfLayout, BorderLayout.LINE_START);
 
             //change to importView
             centerScrollPane.setViewportView(importViewPanel);
@@ -364,7 +403,7 @@ public class AppGui {
 
     private void initializePlaybackPanels() {
         photoPlaybackPanel = new JPanel();
-        videoPlaybackPanel = new JPanel();  //later updated with components within MyMediaPlayer
+        videoPlaybackPanel = new JPanel();  //updated later within MyMediaPlayer
 
         JButton btnGoBack = new JButton("<-- Go Back");
         btnGoBack.addActionListener(e -> {
@@ -492,7 +531,11 @@ public class AppGui {
             }
 
             //copy files into myPhoto directory and follow import procedures
-            myPhoto.importMedia(selectedFiles);
+            ArrayList<String> failedImports = myPhoto.importMedia(selectedFiles);    //returns list of files that failed import
+
+            if (failedImports.size() > 0)
+                JOptionPane.showMessageDialog(null, "Failed to import at least one of each of the following files:\n "
+                        + failedImports.toString());
         }
         else if (userChoice == JFileChooser.CANCEL_OPTION) { } //do nothing for now
         else {} //JFileChooser.ERROR_OPTION, do nothing for now
@@ -502,14 +545,21 @@ public class AppGui {
         DefaultListModel fileListModel = (DefaultListModel) fileList.getModel();
         ArrayList<File> droppedFiles = new ArrayList<>();
 
-        for (int i = 0; i < fileListModel.getSize(); i++) {
-            File file = new File(fileListModel.getElementAt(i).toString());
-            droppedFiles.add(file);
-        }
+        if (fileListModel.getSize() > 0) {
+            for (int i = 0; i < fileListModel.getSize(); i++) {
+                File file = new File(fileListModel.getElementAt(i).toString());
+                droppedFiles.add(file);
+            }
 
-        //copy files into myPhoto directory and follow import procedures
-        myPhoto.importMedia(droppedFiles.toArray(new File[]{}));
-        fileListModel.clear();
+            //copy files into myPhoto directory and follow import procedures
+            ArrayList<String> failedImports = myPhoto.importMedia(droppedFiles.toArray(new File[]{}));    //returns list of files that failed import
+
+            if (failedImports.size() > 0)
+                JOptionPane.showMessageDialog(null, "Failed to import at least one of each of the following files:\n "
+                        + failedImports.toString());
+
+            fileListModel.clear();
+        }
     }
 
     public void openAltApplication(MediaItem media) {

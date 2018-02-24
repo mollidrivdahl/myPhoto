@@ -3,6 +3,7 @@ package com.mdSolutions.myPhoto;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.activity.InvalidActivityException;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -54,7 +56,7 @@ public class MediaCollection extends MediaItem {
         int scaledHeight = 150;
 
         try {
-            originalImg = ImageIO.read(new File(coverPhotoPath));
+            originalImg = ImageIO.read(new File(coverPhotoPath));//todo: if coverPhotoPath is a video, create videoMedia instance and call view() instead
 
             // creates output image
             coverPhotoImg = new BufferedImage(scaledWidth, scaledHeight, originalImg.getType());
@@ -311,9 +313,22 @@ public class MediaCollection extends MediaItem {
         }
     }
 
-    public void moveMedia(MediaCollection destCollection) {
+    public void moveMedia(MediaCollection destCollection) throws InvalidActivityException {
         MediaItem travel = headItem;
         MediaItem priorUnselected = null;
+        String newDestinationPath;
+
+        //for each selected item of this current collection, check if file by that name already exists in destination file directory
+        Stream<MediaItem> selectedMedia = listOfChildren.stream().filter(MediaItem::isSelected);
+        for (MediaItem media : (Iterable<MediaItem>) selectedMedia::iterator) {
+            if (media instanceof MediaCollection)
+                newDestinationPath = destCollection.relPath + media.name + "/";
+            else
+                newDestinationPath = destCollection.relPath + media.name;
+
+            if (MyPhoto.FileSystemAccess.fileExists(newDestinationPath))
+                throw new InvalidActivityException("Cannot move files - at least one file in destination collection has the same name");
+        }
 
         //connect non-selected items, add each selected item to destination collection,
         //& remove each selected item from currentCollection

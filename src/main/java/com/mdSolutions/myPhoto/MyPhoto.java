@@ -58,28 +58,34 @@ public class MyPhoto {
         currentCollection.setPreviusItem(null);
     }
 
-    public void importMedia(File[] selectedFiles) {
+    public ArrayList<String> importMedia(File[] selectedFiles) {
         //create new collection in root collection for importing the media items into
         currentCollection = DbAccess.getInstance().getRootCollection();
         MediaCollection newCollection = null;
+        ArrayList<String> failedImports = new ArrayList<>();
 
         if ((newCollection = createCollection()) != null) { //TODO: figure out how to handle if this is untrue
 
             for (File file : selectedFiles) {
                 //copy (import) file to new collection's directory in the file system
-                FileSystemAccess.copyForImport(file, newCollection.getRelPath());   //TODO: handle copying failing for some files
+                try {
+                    FileSystemAccess.copyForImport(file, newCollection.getRelPath());
 
-                //determine concrete type & call constructor for that type
-                MediaItem newMedia = MediaItem.getConcreteType(file);
-                newMedia.setName(file.getName());
+                    //determine concrete type & call constructor for that type
+                    MediaItem newMedia = MediaItem.getConcreteType(file);
+                    newMedia.setName(file.getName());
 
-                //add new MediaItem to the new collection
-                newCollection.addMedia(newMedia);
+                    //add new MediaItem to the new collection
+                    newCollection.addMedia(newMedia);
+                }
+                catch (InvalidActivityException ex) { failedImports.add(ex.getMessage() + "\n"); }
             }
         }
 
         //append imported media to the new collection in database
         DbAccess.getInstance().appendNewChildMedia(newCollection);
+
+        return failedImports;
     }
 
     public void organizeManually(MediaItem leftConnection, MediaItem rightConnection) {
@@ -105,6 +111,11 @@ public class MyPhoto {
         currentCollection.moveMedia(destCollection);
         DbAccess.getInstance().appendExistingChildMedia(destCollection, true);
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
+
+        //reset destination collection
+        destCollection.getListOfChildren().clear();
+        destCollection.setHeadItem(null);
+        destCollection.setTailItem(null);
     }
 
     public void moveMediaOut() throws InvalidActivityException {
@@ -161,12 +172,13 @@ public class MyPhoto {
             return null;    //directory failed to be created
         }
 
-        static void copyForImport(File importedFile, String destDirPath) {
+        static void copyForImport(File importedFile, String destDirPath) throws InvalidActivityException {
             try {
                 Files.copy(importedFile.toPath(), new File(destDirPath + importedFile.getName()).toPath());
             }
             catch (IOException ex) {
                 System.out.println(ex.getMessage());
+                throw new InvalidActivityException(importedFile.toPath().toString());
             }
         }
     }

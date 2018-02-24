@@ -9,6 +9,7 @@ import com.restfb.types.GraphResponse;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.activity.InvalidActivityException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -80,7 +81,10 @@ public class FbMediaUploader {
 
                     photos.add(newPhoto);
 
-                    MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), PHOTO_SHARE_FOLDER_PATH + "/");
+                    try {
+                        MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), PHOTO_SHARE_FOLDER_PATH + "/");
+                    }
+                    catch (InvalidActivityException ex) { System.out.println(ex.getMessage()); }
 
                     File newMediaFile = new File(newPhoto.getRelPath());
                     newMediaFile.deleteOnExit();
@@ -92,7 +96,10 @@ public class FbMediaUploader {
 
                     videos.add(newVideo);
 
-                    MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), VIDEO_SHARE_FOLDER_PATH + "/");
+                    try {
+                        MyPhoto.FileSystemAccess.copyForImport(new File(media.getRelPath()), VIDEO_SHARE_FOLDER_PATH + "/");
+                    }
+                    catch (InvalidActivityException ex) { System.out.println(ex.getMessage()); }
 
                     File newMediaFile = new File(newVideo.getRelPath());
                     newMediaFile.deleteOnExit();
