@@ -141,7 +141,7 @@ public class MyPhoto {
 
     public void createDuplicates() throws InvalidActivityException {
         //if any of the selected items are collections, throw error
-        if (getCurrentCollection().getListOfChildren().stream()
+        if (currentCollection.getListOfChildren().stream()
                 .filter(MediaItem::isSelected)
                 .anyMatch(i -> i instanceof MediaCollection))
         {
@@ -153,6 +153,13 @@ public class MyPhoto {
         DbAccess.getInstance().refreshCurrentCollection(currentCollection, currentCollection.getId());
 
         currentCollection.unselectAllChildren();
+    }
+
+
+    public void deleteMedia() {
+        ArrayList<MediaItem> mediaToDelete = currentCollection.deleteMedia();
+        DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
+        DbAccess.getInstance().deleteMedia(mediaToDelete);
     }
 
     public void copyToFacebook() {

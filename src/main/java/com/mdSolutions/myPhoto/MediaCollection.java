@@ -1,6 +1,5 @@
 package com.mdSolutions.myPhoto;
 
-import com.restfb.types.Video;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +9,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Files;
+import org.apache.commons.io.FileUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -53,8 +53,8 @@ public class MediaCollection extends MediaItem {
     public BufferedImage view() {
         BufferedImage originalImg;
         BufferedImage coverPhotoImg = null;
-        int scaledWidth = 165;
-        int scaledHeight = 150;
+        int scaledWidth = 161;//166;
+        int scaledHeight = 161;//166;
 
         try {
             originalImg = ImageIO.read(new File(coverPhotoPath));//todo: if coverPhotoPath is a video, create videoMedia instance and call view() instead
@@ -343,7 +343,7 @@ public class MediaCollection extends MediaItem {
                 listOfChildren.remove(travel);
 
                 try {
-                    //move media appropriately in file explorer
+                    //move media appropriately in file system
                     if (travel instanceof MediaCollection)
                         Files.move(new File(travel.relPath).toPath(), new File(destCollection.relPath + travel.name + "/").toPath(), REPLACE_EXISTING);
                     else
@@ -448,5 +448,58 @@ public class MediaCollection extends MediaItem {
         }
 
         return newMedia;
+    }
+
+    public ArrayList<MediaItem> deleteMedia() {
+        ArrayList<MediaItem> mediaToDelete = new ArrayList<>();
+        MediaItem travel = headItem;
+        MediaItem priorUnselected = null;
+
+        //connect non-selected items, delete each selected from file system,
+        //& remove each selected item from currentCollection
+        while (travel != null) {
+            if (travel.isSelected) {
+                if (travel == headItem)
+                    headItem = null;
+                if (travel == tailItem)
+                    tailItem = priorUnselected;
+
+                listOfChildren.remove(travel);
+                mediaToDelete.add(travel);
+
+                try {
+                    //delete media from file system
+                    if (travel instanceof MediaCollection)
+                        FileUtils.deleteDirectory(new File(travel.relPath));
+                    else
+                        Files.deleteIfExists(new File(travel.relPath).toPath());
+                }
+                catch (Exception ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+                travel = travel.nextItem;
+            }
+            else {
+                if (priorUnselected == null)
+                    headItem = travel;
+                else
+                    priorUnselected.nextItem = travel;
+
+                travel.previusItem = priorUnselected;
+                priorUnselected = travel;
+
+                travel = travel.nextItem;
+            }
+        }
+
+        if (priorUnselected != null)
+            priorUnselected.nextItem = null;
+
+        tailItem = priorUnselected;
+
+        unselectAllChildren();
+
+        return mediaToDelete;
     }
 }

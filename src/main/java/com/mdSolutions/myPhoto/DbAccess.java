@@ -8,8 +8,8 @@ import java.util.stream.Stream;
 
 public class DbAccess {
 
-    private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INTEGER PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, NextItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, PrevItemId INTEGER REFERENCES MediaItem (Id) ON DELETE CASCADE, LevelNum INT NOT NULL, MediaType VARCHAR(12) NOT NULL CHECK (MediaType IN ('Photo', 'Video', 'Unsupported', 'Collection')) );");
-    private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INTEGER PRIMARY KEY REFERENCES MediaItem (Id) ON DELETE CASCADE, CoverPhotoPath VARCHAR(256) NOT NULL);");
+    private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INTEGER PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INTEGER REFERENCES MediaItem (Id), NextItemId INTEGER REFERENCES MediaItem (Id), PrevItemId INTEGER REFERENCES MediaItem (Id), LevelNum INT NOT NULL, MediaType VARCHAR(12) NOT NULL CHECK (MediaType IN ('Photo', 'Video', 'Unsupported', 'Collection')) );");
+    private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INTEGER PRIMARY KEY REFERENCES MediaItem (Id), CoverPhotoPath VARCHAR(256) NOT NULL);");
 
     private static DbAccess _instance;
     private Connection dbConnection;
@@ -152,7 +152,6 @@ public class DbAccess {
                     prevMedia = MediaItem.getConcreteType(prevRs.getString("MediaType"));
                     prevMedia.setId(prevItemId);
 
-                    //prevMedia = new MediaCollection(prevItemId);
                     tempItems.put(prevItemId, prevMedia);
                 }
 
@@ -163,7 +162,6 @@ public class DbAccess {
                     nextMedia = MediaItem.getConcreteType(nextRs.getString("MediaType"));
                     nextMedia.setId(nextItemId);
 
-                    //nextMedia = new MediaCollection(nextItemId);
                     tempItems.put(nextItemId, nextMedia);
                 }
 
@@ -669,5 +667,54 @@ public class DbAccess {
         catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
+    }
+
+    public void deleteMedia(ArrayList<MediaItem> mediaToDelete) {
+        Statement stmt;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            for (MediaItem media : mediaToDelete) {
+                if (media instanceof MediaCollection) {
+                    //delete children
+                    deleteMediaRecursive((MediaCollection) media);
+
+                    //delete self
+                    stmt.executeUpdate(String.format("DELETE FROM Collection WHERE Id = " + media.getId() + ";"));
+                    stmt.executeUpdate(String.format("DELETE FROM MediaItem WHERE Id = " + media.getId() + ";"));
+                }
+                else {
+                    //delete individual media
+                    stmt.executeUpdate(String.format("DELETE FROM MediaItem WHERE Id = " + media.getId() + ";"));
+                }
+            }
+        }
+        catch (Exception ex) { System.out.println(ex.getMessage()); }
+    }
+
+    private void deleteMediaRecursive(MediaCollection collectionToDelete) {
+        Statement stmt;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            refreshCurrentCollection(collectionToDelete, collectionToDelete.getId());
+
+            for (MediaItem media : collectionToDelete.getListOfChildren()) {
+                if (media instanceof MediaCollection) {
+                    //delete children
+                    deleteMediaRecursive((MediaCollection) media);
+
+                    //delete self
+                    stmt.executeUpdate(String.format("DELETE FROM Collection WHERE Id = " + media.getId() + ";"));
+                    stmt.executeUpdate(String.format("DELETE FROM MediaItem WHERE Id = " + media.getId() + ";"));
+                } else {
+                    //delete individual media
+                    stmt.executeUpdate(String.format("DELETE FROM MediaItem WHERE Id = " + media.getId() + ";"));
+                }
+            }
+        }
+        catch (Exception ex) { System.out.println(ex.getMessage()); }
     }
 }

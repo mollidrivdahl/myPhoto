@@ -317,16 +317,18 @@ public class AppGui {
             leftPanelOfLayout.setBackground(Color.black);
 
             //add button to change back to gridView of root collection
-            JButton btnGridView = new JButton("<html>Return to<br/>Root Collection</html>");
-            btnGridView.setPreferredSize(new Dimension(150, 75));
+            JButton btnGridView = new JButton("<-- Go Back");
+            btnGridView.setPreferredSize(new Dimension(150, 25));
             btnGridView.addActionListener(a -> {
                 populateGridView(myPhoto.getCurrentCollection());   //current collection already changed to root collection
+                centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5,Color.white));
                 centerScrollPane.setViewportView(gridViewPanel);
             });
             leftPanelOfLayout.add(btnGridView);
             importViewPanel.add(leftPanelOfLayout, BorderLayout.LINE_START);
 
             //change to importView
+            centerScrollPane.setBorder(BorderFactory.createMatteBorder(5,5,5,5,MY_ORANGE));
             centerScrollPane.setViewportView(importViewPanel);
         });
 
@@ -403,6 +405,20 @@ public class AppGui {
             }
         });
 
+        //"delete media" button
+        JButton btnDelete = new JButton();
+        btnDelete.setText("Delete Media");
+        btnDelete.addActionListener(e -> {
+            int confirmResult = JOptionPane.showConfirmDialog(null,
+                    "Are you sure you want to delete media? Any nested media will also deleted.",
+                    "Warning", JOptionPane.YES_NO_OPTION );
+
+            if (confirmResult == JOptionPane.YES_OPTION) {
+                myPhoto.deleteMedia();
+                populateGridView(myPhoto.getCurrentCollection());
+            }
+        });
+
         menuPanel.add(btnCreateCollection);
         menuPanel.add(btnNavigateUp);
         menuPanel.add(btnImport);
@@ -412,6 +428,7 @@ public class AppGui {
         menuPanel.add(btnAutoOrganize);
         menuPanel.add(btnMoveUp);
         menuPanel.add(btnDuplicate);
+        menuPanel.add(btnDelete);
         menuPanel.add(fbShareFolder);
     }
 
