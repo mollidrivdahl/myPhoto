@@ -15,6 +15,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -74,7 +75,7 @@ public class PanelDraggable extends JPanel implements Transferable,
             iconLabel.setIcon(icon);
 
             if (mediaItem instanceof MediaCollection)
-                iconLabel.setBorder(BorderFactory.createMatteBorder(5,5,0,0, Color.darkGray));
+                iconLabel.setBorder(BorderFactory.createMatteBorder(7,7,0,0, AppGui.MY_PURPLE_DARKER));
 
             add(iconLabel);
         }
@@ -115,7 +116,7 @@ public class PanelDraggable extends JPanel implements Transferable,
                             new MyMediaPlayer((VideoMedia)mediaItem, AppGui.getInstance().getVideoPlaybackPanel());
                         }
                         else {  //unsupported media item
-                            displayRClickPopupMenu(e);
+                            displayUnsupportedPopupMenu(e);
                         }
                     }
                     //right click
@@ -171,6 +172,44 @@ public class PanelDraggable extends JPanel implements Transferable,
     }
 
     private void displayRClickPopupMenu(MouseEvent e) {
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem item1 = new JMenuItem("Open with Default App");
+        JMenuItem item2 = new JMenuItem("Open in Alt App...");
+        JMenuItem item3 = new JMenuItem("Set as Cover Photo for...");
+
+        item1.addActionListener(a ->  {
+            try {
+                Desktop.getDesktop().open(new File(mediaItem.getRelPath()));
+            }
+            catch (IOException ex) {
+                System.out.println(ex);
+            }
+        });
+        item2.addActionListener(a -> AppGui.getInstance().openAltApplication(mediaItem));
+        item3.addActionListener(a -> {
+            JPopupMenu popup2 = new JPopupMenu();
+            ArrayList<MediaCollection> parents = AppGui.getInstance().getMyPhoto().setCoverPhoto(mediaItem);
+
+            for (MediaCollection parent : parents) {
+                JMenuItem newItem = new JMenuItem("Collection: " + parent.getName() + ", Level: " + parent.getLevelNum());
+                newItem.addActionListener(c -> {
+                    parent.setCoverPhotoPath(mediaItem.getRelPath());
+                    DbAccess.getInstance().updateCoverPhoto(parent);
+                });
+
+                popup2.add(newItem);
+            }
+
+            popup2.show(e.getComponent(), e.getX(), e.getY());
+        });
+
+        popup.add(item1);
+        popup.add(item2);
+        popup.add(item3);
+        popup.show(e.getComponent(), e.getX(), e.getY());
+    }
+
+    private void displayUnsupportedPopupMenu(MouseEvent e) {
         JPopupMenu popup = new JPopupMenu();
         JMenuItem item1 = new JMenuItem("Open with Default App");
         JMenuItem item2 = new JMenuItem("Open in Alt App...");

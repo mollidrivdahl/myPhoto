@@ -42,6 +42,32 @@ public class VideoMedia extends IndividualMedia {
         return thumbnail;
     }
 
+    @Override
+    public BufferedImage view(int width, int height) {
+        BufferedImage originalImg;
+        BufferedImage thumbnail = null;
+        int scaledWidth = width;
+        int scaledHeight = height;
+
+        try {
+            //extract a still frame image from the video
+            originalImg = extractThumbnail();
+
+            //creates output thumbnail image
+            thumbnail = new BufferedImage(scaledWidth, scaledHeight, originalImg.getType());
+
+            //scales the input image to the output image
+            Graphics2D g2d = thumbnail.createGraphics();
+            g2d.drawImage(originalImg, 0, 0, scaledWidth, scaledHeight, null);
+            g2d.dispose();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        return thumbnail;
+    }
+
     private BufferedImage extractThumbnail() throws NumberFormatException,IOException {
 
         String filename = relPath;

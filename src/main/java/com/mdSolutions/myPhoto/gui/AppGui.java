@@ -29,6 +29,8 @@ public class AppGui {
     public static final int PLAYBACK_HEIGHT = 50;
     public static final int FB_ACTIONS_HEIGHT = 40;
     public static final Color MY_PURPLE = new Color(119, 21, 165);
+    public static final Color MY_PURPLE_LIGHTER = new Color(143, 22, 200);
+    public static final Color MY_PURPLE_DARKER = new Color(83, 24, 130);
     public static final Color MY_RED = new Color(242, 33, 65);
     public static final Color MY_BLUE = new Color(3, 147, 155);
     public static final Color MY_GREEN = new Color(56, 182, 46);

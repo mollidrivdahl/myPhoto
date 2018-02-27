@@ -162,6 +162,20 @@ public class MyPhoto {
         DbAccess.getInstance().deleteMedia(mediaToDelete);
     }
 
+    public ArrayList<MediaCollection> setCoverPhoto(MediaItem mediaForCover) {
+        int parentId = mediaForCover.getParentId();
+        ArrayList<MediaCollection> parents = new ArrayList<>();
+
+        while (parentId != 1) {
+            MediaCollection parent = DbAccess.getInstance().getMediaById(parentId);
+            parents.add(parent);
+
+            parentId = parent.getParentId();
+        }
+
+        return parents;
+    }
+
     public void copyToFacebook() {
         ArrayList<IndividualMedia> fbMedia = new ArrayList<>();
 

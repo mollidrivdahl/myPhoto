@@ -18,4 +18,10 @@ public class UnsupportedMedia extends IndividualMedia {
         //TODO: return buffered image of the "unknownMedia.png" resource image
         return null;
     }
+
+    @Override
+    public BufferedImage view (int width, int height) {
+        //TODO: return buffered image of the "unknownMedia.png" resource image
+        return null;
+    }
 }

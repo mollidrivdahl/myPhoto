@@ -53,11 +53,54 @@ public class MediaCollection extends MediaItem {
     public BufferedImage view() {
         BufferedImage originalImg;
         BufferedImage coverPhotoImg = null;
-        int scaledWidth = 161;//166;
-        int scaledHeight = 161;//166;
+        int scaledWidth = 159;  //166 full width before inner border is applied;
+        int scaledHeight = 159; //166 full height before inner border is applied;
 
         try {
-            originalImg = ImageIO.read(new File(coverPhotoPath));//todo: if coverPhotoPath is a video, create videoMedia instance and call view() instead
+            MediaItem media;
+            File coverPhotoFile = new File(coverPhotoPath);
+
+            if ((media = MediaItem.getConcreteType(coverPhotoFile)) instanceof VideoMedia)
+            {
+                media.setRelPath(coverPhotoPath);
+                return media.view(scaledWidth, scaledHeight);
+            }
+            else
+                originalImg = ImageIO.read(coverPhotoFile);
+
+            // creates output image
+            coverPhotoImg = new BufferedImage(scaledWidth, scaledHeight, originalImg.getType());
+
+            // scales the input image to the output image
+            Graphics2D g2d = coverPhotoImg.createGraphics();
+            g2d.drawImage(originalImg, 0, 0, scaledWidth, scaledHeight, null);
+            g2d.dispose();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        return coverPhotoImg;
+    }
+
+    @Override
+    public BufferedImage view (int width, int height) {
+        BufferedImage originalImg;
+        BufferedImage coverPhotoImg = null;
+        int scaledWidth = width;
+        int scaledHeight = height;
+
+        try {
+            MediaItem media;
+            File coverPhotoFile = new File(coverPhotoPath);
+
+            if ((media = MediaItem.getConcreteType(coverPhotoFile)) instanceof VideoMedia)
+            {
+                media.setRelPath(coverPhotoPath);
+                return media.view(scaledWidth, scaledHeight);
+            }
+            else
+                originalImg = ImageIO.read(coverPhotoFile);
 
             // creates output image
             coverPhotoImg = new BufferedImage(scaledWidth, scaledHeight, originalImg.getType());

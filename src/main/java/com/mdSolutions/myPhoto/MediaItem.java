@@ -12,6 +12,7 @@ import java.util.List;
 
 public abstract class MediaItem implements Serializable{
 
+    //TODO: double check these are all supportable
     static final String[] supportedPhotoTypes = new String[] { "jpg", "jpeg", "png", "gif", "bmp", "wbmp" };
     static final String[] supportedVideoTypes = new String[] { "mp4", "mpeg", "wav", "swf", "mov", "wmv", "m4v" };
 
@@ -63,6 +64,7 @@ public abstract class MediaItem implements Serializable{
     }
 
     public abstract BufferedImage view();
+    public abstract BufferedImage view(int width, int height);
 
     static MediaItem getConcreteType(String typeIndicator) {
         if (typeIndicator.equals("Photo"))

@@ -67,6 +67,46 @@ public class PhotoMedia extends IndividualMedia {
         return thumbnail;
     }
 
+    @Override
+    public BufferedImage view(int width, int height) {
+        BufferedImage originalImg;
+        BufferedImage thumbnail = null;
+        int scaledWidth = width;
+        int scaledHeight = height;
+
+        try {
+            //read and save image to local variable
+            originalImg = ImageIO.read(new File(relPath));
+
+            //creates output thumbnail image
+            thumbnail = new BufferedImage(scaledWidth, scaledHeight, originalImg.getType());
+
+            //scales the input image to the output image
+            Graphics2D g2d = thumbnail.createGraphics();
+            g2d.drawImage(originalImg, 0, 0, scaledWidth, scaledHeight, null);
+            g2d.dispose();
+
+            //setup full size image for local variable, maintaining original aspect-ratio
+            //TODO: adjust full size calculation for a re-sized window
+            Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(originalImg.getWidth(), originalImg.getHeight()),
+                    new Dimension(AppGui.MAIN_WIDTH - 10, AppGui.MID_HEIGHT - AppGui.PLAYBACK_HEIGHT - 10)); //-10 for scrollbar
+            BufferedImage tempFullSize = new BufferedImage((int)fullSizeAspectRatio.getWidth(),
+                    (int)fullSizeAspectRatio.getHeight(), originalImg.getType());
+            g2d = tempFullSize.createGraphics();
+            g2d.drawImage(originalImg, 0, 0, (int)fullSizeAspectRatio.getWidth(), (int)fullSizeAspectRatio.getHeight(),null);
+            g2d.dispose();
+
+            image = new ImageIcon(tempFullSize);
+            curOrientation = ORIENTATION.STRAIGHT;
+            curZoomMultiplier = 1;
+        }
+        catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        return thumbnail;
+    }
+
     public void rotate() {
         BufferedImage originalImg;
         BufferedImage newImg;

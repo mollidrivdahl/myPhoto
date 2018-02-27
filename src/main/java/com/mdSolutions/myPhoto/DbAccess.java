@@ -717,4 +717,16 @@ public class DbAccess {
         }
         catch (Exception ex) { System.out.println(ex.getMessage()); }
     }
+
+    public void updateCoverPhoto(MediaCollection collection) {
+        Statement stmt;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            stmt.executeUpdate(String.format("UPDATE Collection SET CoverPhotoPath = \'" + collection.getCoverPhotoPath()
+                    + "\' WHERE Id = " + collection.getId() + ";"));
+        }
+        catch (Exception ex) { System.out.println(ex.getMessage()); }
+    }
 }
