@@ -175,7 +175,7 @@ public class PanelDraggable extends JPanel implements Transferable,
         JPopupMenu popup = new JPopupMenu();
         JMenuItem item1 = new JMenuItem("Open with Default App");
         JMenuItem item2 = new JMenuItem("Open in Alt App...");
-        JMenuItem item3 = new JMenuItem("Set as Cover Photo for...");
+        JMenuItem item3 = new JMenuItem("Set as Cover Photo");
 
         item1.addActionListener(a ->  {
             try {
@@ -186,22 +186,7 @@ public class PanelDraggable extends JPanel implements Transferable,
             }
         });
         item2.addActionListener(a -> AppGui.getInstance().openAltApplication(mediaItem));
-        item3.addActionListener(a -> {
-            JPopupMenu popup2 = new JPopupMenu();
-            ArrayList<MediaCollection> parents = AppGui.getInstance().getMyPhoto().setCoverPhoto(mediaItem);
-
-            for (MediaCollection parent : parents) {
-                JMenuItem newItem = new JMenuItem("Collection: " + parent.getName() + ", Level: " + parent.getLevelNum());
-                newItem.addActionListener(c -> {
-                    parent.setCoverPhotoPath(mediaItem.getRelPath());
-                    DbAccess.getInstance().updateCoverPhoto(parent);
-                });
-
-                popup2.add(newItem);
-            }
-
-            popup2.show(e.getComponent(), e.getX(), e.getY());
-        });
+        item3.addActionListener(a -> AppGui.getInstance().getMyPhoto().setCoverPhoto(mediaItem));
 
         popup.add(item1);
         popup.add(item2);

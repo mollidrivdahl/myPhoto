@@ -2,7 +2,6 @@ package com.mdSolutions.myPhoto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.sqlite.core.DB;
 
 import javax.activity.InvalidActivityException;
 import java.io.File;
@@ -36,7 +35,7 @@ public class MyPhoto {
 
             newCollection = new MediaCollection(defaultName, -1, defaultPath, null,
                     currentCollection.getTailItem(), currentCollection.getId(), currentCollection.getRelPath(),
-                    currentCollection.getLevelNum() + 1, "resources/myPhotoLogo.png");
+                    currentCollection.getLevelNum() + 1, 1);
 
             int newId = DbAccess.getInstance().addNewCollection(newCollection);
             newCollection.setId(newId);
@@ -99,8 +98,8 @@ public class MyPhoto {
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
-    public void moveMediaIn(MediaCollection destCollection) throws InvalidActivityException {
-        boolean allowAction = true;
+    public void moveMediaIn(MediaCollection destCollection) throws InvalidActivityException { //TODO: update cover photo when media of cover photo is moved in
+        boolean allowAction;
 
         //check if any [nested] collections would be moved into level 4 & prevent action
         Stream<MediaItem> selectedMedia = currentCollection.getListOfChildren().stream().filter(MediaItem::isSelected);
@@ -110,7 +109,7 @@ public class MyPhoto {
             throw new InvalidActivityException("Cannot move media - one or more [nested] collections would be moved down to level 4");
 
         currentCollection.moveMedia(destCollection);
-        DbAccess.getInstance().appendExistingChildMedia(destCollection, true);
+        DbAccess.getInstance().appendExistingChildMedia(destCollection, currentCollection.getId(), true);
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
 
         //reset destination collection
@@ -119,7 +118,7 @@ public class MyPhoto {
         destCollection.setTailItem(null);
     }
 
-    public void moveMediaOut() throws InvalidActivityException {
+    public void moveMediaOut() throws InvalidActivityException { //TODO: update cover photo when media of cover photo is moved out
         if (currentCollection.getLevelNum() == 0)
             throw new InvalidActivityException("Cannot move media up - this is the root collection");
 
@@ -135,7 +134,7 @@ public class MyPhoto {
         }
 
         currentCollection.moveMedia(parentCollection);
-        DbAccess.getInstance().appendExistingChildMedia(parentCollection, false);
+        DbAccess.getInstance().appendExistingChildMedia(parentCollection, currentCollection.getId(), false);
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
     }
 
@@ -154,26 +153,18 @@ public class MyPhoto {
 
         currentCollection.unselectAllChildren();
     }
-
-
+    
     public void deleteMedia() {
         ArrayList<MediaItem> mediaToDelete = currentCollection.deleteMedia();
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);
         DbAccess.getInstance().deleteMedia(mediaToDelete);
     }
 
-    public ArrayList<MediaCollection> setCoverPhoto(MediaItem mediaForCover) {
-        int parentId = mediaForCover.getParentId();
-        ArrayList<MediaCollection> parents = new ArrayList<>();
-
-        while (parentId != 1) {
-            MediaCollection parent = DbAccess.getInstance().getMediaById(parentId);
-            parents.add(parent);
-
-            parentId = parent.getParentId();
-        }
-
-        return parents;
+    public void setCoverPhoto(MediaItem mediaForCover) {
+        MediaCollection parent = DbAccess.getInstance().getMediaById(mediaForCover.getParentId());
+        parent.setCoverPhotoItem(mediaForCover.getId());
+        ((IndividualMedia)mediaForCover).setCoverPhoto(true);
+        DbAccess.getInstance().updateCoverPhoto(parent);
     }
 
     public void copyToFacebook() {

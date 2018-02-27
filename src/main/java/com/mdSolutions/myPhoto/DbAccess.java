@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 public class DbAccess {
 
     private static final String CREATE_TABLE_MEDIA_ITEM = String.format("CREATE TABLE MediaItem (Id INTEGER PRIMARY KEY, Name VARCHAR(256) NOT NULL, RelPath VARCHAR(256) NOT NULL, ParentId INTEGER REFERENCES MediaItem (Id), NextItemId INTEGER REFERENCES MediaItem (Id), PrevItemId INTEGER REFERENCES MediaItem (Id), LevelNum INT NOT NULL, MediaType VARCHAR(12) NOT NULL CHECK (MediaType IN ('Photo', 'Video', 'Unsupported', 'Collection')) );");
-    private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INTEGER PRIMARY KEY REFERENCES MediaItem (Id), CoverPhotoPath VARCHAR(256) NOT NULL);");
+    private static final String CREATE_TABLE_COLLECTION = String.format("CREATE TABLE Collection (Id INTEGER PRIMARY KEY REFERENCES MediaItem (Id), CoverPhotoItem INTEGER REFERENCES MediaItem (Id) NOT NULL);");
 
     private static DbAccess _instance;
     private Connection dbConnection;
@@ -63,7 +63,7 @@ public class DbAccess {
             stmt.executeUpdate(CREATE_TABLE_COLLECTION);
             stmt.executeUpdate(String.format("INSERT INTO MediaItem (Id, Name, RelPath, ParentId, NextItemId, PrevItemId, LevelNum, MediaType)" +
                     "VALUES (1, \'myPhotoLibrary\', \'myPhotoLibrary/\', null, null, null, 0, \'Collection\');"));
-            stmt.executeUpdate(String.format("INSERT INTO Collection (Id, CoverPhotoPath) VALUES (1, \'\');"));
+            stmt.executeUpdate(String.format("INSERT INTO Collection (Id, CoverPhotoItem) VALUES (1, 1);"));
 
             //add 'myPhotoLibrary' directory to project folder, if doesn't exist
             if (!MyPhoto.FileSystemAccess.fileExists("myPhotoLibrary"))
@@ -113,7 +113,7 @@ public class DbAccess {
                 currentCollection.setRelPath(rs.getString("RelPath"));
                 currentCollection.setParentId((Integer)rs.getObject("ParentId"));
                 currentCollection.setLevelNum(rs.getInt("LevelNum"));
-                currentCollection.setCoverPhotoPath(rs.getString("CoverPhotoPath"));
+                currentCollection.setCoverPhotoItem((Integer)rs.getObject("CoverPhotoItem"));
             }
 
             //query for parent collection path
@@ -172,7 +172,7 @@ public class DbAccess {
                 curMedia.setLevelNum(rs.getInt("LevelNum"));
 
                 if (curMedia instanceof MediaCollection)
-                    ((MediaCollection)curMedia).setCoverPhotoPath(rs.getString("CoverPhotoPath"));
+                    ((MediaCollection)curMedia).setCoverPhotoItem((Integer)rs.getObject("CoverPhotoItem"));
 
                 if (prevItemId == null) {
                     currentCollection.setHeadItem(curMedia);   //should be hit exactly once
@@ -188,6 +188,10 @@ public class DbAccess {
                 else
                     curMedia.setNextItem(nextMedia);
             }
+
+            //find cover photo item of current collection (if applicable) and set isCoverPhoto to true
+            if (tempItems.containsKey(currentCollection.getCoverPhotoItem()))
+                ((IndividualMedia) tempItems.get(currentCollection.getCoverPhotoItem())).setCoverPhoto(true);
 
             //copy media items from the temp hashtable to the currentCollections's listOfChildren
             currentCollection.setListOfChildren(new ArrayList<>(tempItems.values()));
@@ -218,7 +222,7 @@ public class DbAccess {
                 requestedCollection.setRelPath(rs.getString("RelPath"));
                 requestedCollection.setParentId((Integer)rs.getObject("ParentId"));
                 requestedCollection.setLevelNum(rs.getInt("LevelNum"));
-                requestedCollection.setCoverPhotoPath(rs.getString("CoverPhotoPath"));
+                requestedCollection.setCoverPhotoItem((Integer)rs.getObject("CoverPhotoItem"));
             }
 
             //query for parent collection path
@@ -259,8 +263,8 @@ public class DbAccess {
             newId = stmt.getGeneratedKeys().getInt(1);
 
             //insert new collection into referencing table in db
-            stmt.executeUpdate(String.format("INSERT INTO Collection(Id, CoverPhotoPath)" +
-                    "VALUES(" + newId + ",\'" + newCollection.getCoverPhotoPath() + "\');"));
+            stmt.executeUpdate(String.format("INSERT INTO Collection(Id, CoverPhotoItem)" +
+                    "VALUES(" + newId + "," + newCollection.getCoverPhotoItem() + ");"));
 
             //update previous item in parent collection to point to new collection as its next item
             if (!prevItemId.equals("null"))
@@ -397,7 +401,7 @@ public class DbAccess {
     }
 
     //as opposed to appendNewChildMedia, where there aren't update operations but rather inserts
-    public void appendExistingChildMedia(MediaCollection destCollection, boolean isMoveDown) {
+    public void appendExistingChildMedia(MediaCollection destCollection, Integer originalParentId, boolean isMoveDown) {
         Statement stmt;
         Integer firstPrevId = null;
         ArrayList<MediaCollection> nestedCollections = new ArrayList<>();
@@ -440,6 +444,8 @@ public class DbAccess {
 
                 if (travel instanceof MediaCollection)
                     nestedCollections.add((MediaCollection) travel);
+                else if (((IndividualMedia)travel).isCoverPhoto())
+                    updateCoverPhoto(originalParentId, 1);  //reset parent collection cover photo id to be 1
 
                 travel = travel.getNextItem();
             }
@@ -724,9 +730,38 @@ public class DbAccess {
         try {
             stmt = dbConnection.createStatement();
 
-            stmt.executeUpdate(String.format("UPDATE Collection SET CoverPhotoPath = \'" + collection.getCoverPhotoPath()
-                    + "\' WHERE Id = " + collection.getId() + ";"));
+            stmt.executeUpdate(String.format("UPDATE Collection SET CoverPhotoItem = " + collection.getCoverPhotoItem()
+                    + " WHERE Id = " + collection.getId() + ";"));
         }
         catch (Exception ex) { System.out.println(ex.getMessage()); }
+    }
+
+    public void updateCoverPhoto(Integer collectionId, Integer coverPhotoId) {
+        Statement stmt;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            stmt.executeUpdate(String.format("UPDATE Collection SET CoverPhotoItem = " + coverPhotoId
+                    + " WHERE Id = " + collectionId + ";"));
+        }
+        catch (Exception ex) { System.out.println(ex.getMessage()); }
+    }
+
+    public String getRelativePathById(Integer id) {
+        Statement stmt;
+        String relPath = null;
+
+        try {
+            stmt = dbConnection.createStatement();
+
+            ResultSet rs = stmt.executeQuery(String.format("SELECT RelPath FROM MediaItem WHERE Id = " + id + ";"));
+            while (rs.next()) {
+                relPath = rs.getString("RelPath");
+            }
+        }
+        catch (Exception ex) { System.out.println(); }
+
+        return relPath;
     }
 }

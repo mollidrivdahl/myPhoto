@@ -18,14 +18,14 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class MediaCollection extends MediaItem {
 
-    @Getter @Setter private String coverPhotoPath;
+    @Getter @Setter private Integer coverPhotoItem;
     @Getter @Setter private ArrayList<MediaItem> listOfChildren;
     @Getter @Setter private MediaItem headItem;
     @Getter @Setter private MediaItem tailItem;
 
     public MediaCollection(){
         super();
-        coverPhotoPath = "";
+        coverPhotoItem = 1;
         listOfChildren = new ArrayList<MediaItem>();
         headItem = null;
         tailItem = null;
@@ -34,16 +34,16 @@ public class MediaCollection extends MediaItem {
     public MediaCollection(Integer id)
     {
         super(id);
-        coverPhotoPath = "";
+        coverPhotoItem = 1;
         listOfChildren = new ArrayList<MediaItem>();
         headItem = null;
         tailItem = null;
     }
 
     public MediaCollection(String name, Integer id, String relPath, MediaItem nextItem, MediaItem previusItem,
-                           Integer parentId, String parentCollectionPath, int levelNum, String coverPhotoPath) {
+                           Integer parentId, String parentCollectionPath, int levelNum, Integer coverPhotoItem) {
         super(name, id, relPath, nextItem, previusItem, parentId, parentCollectionPath, levelNum);
-        this.coverPhotoPath = coverPhotoPath;
+        this.coverPhotoItem = coverPhotoItem;
         this.listOfChildren = new ArrayList<MediaItem>();
         headItem = null;
         tailItem = null;
@@ -57,13 +57,14 @@ public class MediaCollection extends MediaItem {
         int scaledHeight = 159; //166 full height before inner border is applied;
 
         try {
-            MediaItem media;
+            MediaItem coverPhotoMedia;
+            String coverPhotoPath = (coverPhotoItem == 1) ? "resources/myPhotoLogo.png" : DbAccess.getInstance().getRelativePathById(coverPhotoItem);
             File coverPhotoFile = new File(coverPhotoPath);
 
-            if ((media = MediaItem.getConcreteType(coverPhotoFile)) instanceof VideoMedia)
+            if ((coverPhotoMedia = MediaItem.getConcreteType(coverPhotoFile)) instanceof VideoMedia)
             {
-                media.setRelPath(coverPhotoPath);
-                return media.view(scaledWidth, scaledHeight);
+                coverPhotoMedia.setRelPath(coverPhotoPath);
+                return coverPhotoMedia.view(scaledWidth, scaledHeight);
             }
             else
                 originalImg = ImageIO.read(coverPhotoFile);
@@ -91,13 +92,14 @@ public class MediaCollection extends MediaItem {
         int scaledHeight = height;
 
         try {
-            MediaItem media;
+            MediaItem coverPhotoMedia;
+            String coverPhotoPath = DbAccess.getInstance().getRelativePathById(coverPhotoItem);
             File coverPhotoFile = new File(coverPhotoPath);
 
-            if ((media = MediaItem.getConcreteType(coverPhotoFile)) instanceof VideoMedia)
+            if ((coverPhotoMedia = MediaItem.getConcreteType(coverPhotoFile)) instanceof VideoMedia)
             {
-                media.setRelPath(coverPhotoPath);
-                return media.view(scaledWidth, scaledHeight);
+                coverPhotoMedia.setRelPath(coverPhotoPath);
+                return coverPhotoMedia.view(scaledWidth, scaledHeight);
             }
             else
                 originalImg = ImageIO.read(coverPhotoFile);
