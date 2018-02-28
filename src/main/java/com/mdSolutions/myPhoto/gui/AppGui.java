@@ -30,7 +30,6 @@ public class AppGui {
     public static final int FB_ACTIONS_HEIGHT = 40;
     public static final Color MY_PURPLE = new Color(119, 21, 165);
     public static final Color MY_PURPLE_LIGHTER = new Color(143, 22, 200);
-    public static final Color MY_PURPLE_DARKER = new Color(83, 24, 130);
     public static final Color MY_RED = new Color(242, 33, 65);
     public static final Color MY_BLUE = new Color(3, 147, 155);
     public static final Color MY_GREEN = new Color(56, 182, 46);
@@ -91,7 +90,7 @@ public class AppGui {
         topPanel.setBackground(Color.gray);
         topPanel.setPreferredSize(new Dimension(WIN_WIDTH, TITLE_HEIGHT));
 
-        menuPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 30));
+        menuPanel = new JPanel(new GridBagLayout());
         menuPanel.setBackground(Color.gray);
         menuPanel.setPreferredSize(new Dimension(MENU_WIDTH, MID_HEIGHT));
 
@@ -192,25 +191,13 @@ public class AppGui {
     private void initializeMenuPanel() {
         //TODO: Deactivate certain buttons in certain displays
 
-        //"create collection" button
-        JButton btnCreateCollection = new JButton();
-        btnCreateCollection.setText("<html>Create<br/>Collection</html>");
-        btnCreateCollection.setPreferredSize(new Dimension(100, 50));
-        btnCreateCollection.addActionListener(e -> {
-            MediaCollection newCollection;
-
-            //if collection doesn't already exist and not creating within level 4
-            if ((newCollection = myPhoto.createCollection()) != null) {
-                appendToGridView(newCollection, myPhoto.getCurrentCollection().getListOfChildren().size());
-                gridViewPanel.revalidate();
-                gridViewPanel.repaint();
-            }
-        });
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx = 1; gbc.insets = new Insets(0,0,50,0);  //top padding
 
         //"navigate up a level" button
         JButton btnNavigateUp = new JButton();
-        btnNavigateUp.setText("\u21b0 Go Back Up");
-        btnNavigateUp.setPreferredSize(new Dimension(125, 25));
+        btnNavigateUp.setText("\u21b0 Go Up");
+        btnNavigateUp.setPreferredSize(new Dimension(400, 25));
         btnNavigateUp.addActionListener(e -> {
             if (myPhoto.getCurrentCollection().getId() != 1) {
                 myPhoto.refreshCurrentCollection(myPhoto.getCurrentCollection().getParentId());
@@ -220,8 +207,8 @@ public class AppGui {
 
         //"import media" button
         JButton btnImport = new JButton();
-        btnImport.setText("<html>Import<br/>Media</html>");
-        btnImport.setPreferredSize(new Dimension(100, 37));
+        btnImport.setText("Import Media");
+        btnImport.setPreferredSize(new Dimension(400, 25));
         btnImport.addActionListener(e -> {
             //setup import view
             importViewPanel = new JPanel(new BorderLayout(30, 30));
@@ -334,10 +321,25 @@ public class AppGui {
             centerScrollPane.setViewportView(importViewPanel);
         });
 
+        //"create collection" button
+        JButton btnCreateCollection = new JButton();
+        btnCreateCollection.setText("Create Empty Collection");
+        btnCreateCollection.setPreferredSize(new Dimension(400, 25));
+        btnCreateCollection.addActionListener(e -> {
+            MediaCollection newCollection;
+
+            //if collection doesn't already exist and not creating within level 4
+            if ((newCollection = myPhoto.createCollection()) != null) {
+                appendToGridView(newCollection, myPhoto.getCurrentCollection().getListOfChildren().size());
+                gridViewPanel.revalidate();
+                gridViewPanel.repaint();
+            }
+        });
+
         //"multi select" checkbox
         JCheckBox checkMultiSelect = new JCheckBox();
         checkMultiSelect.setText("Multi Select");
-        checkMultiSelect.setPreferredSize(new Dimension(100, 25));
+        checkMultiSelect.setPreferredSize(new Dimension(400, 25));
         checkMultiSelect.addActionListener(e -> {
             if (!isMultiSelect){
                 isMultiSelect = true;
@@ -351,9 +353,27 @@ public class AppGui {
             }
         });
 
+        //"move media out of collection" button
+        JButton btnMoveUp = new JButton();
+        btnMoveUp.setText("\u21b0 Move Media Up");
+        btnMoveUp.setPreferredSize(new Dimension(400, 25));
+        btnMoveUp.addActionListener(e -> {
+            try {
+                myPhoto.moveMediaOut();
+                populateGridView(myPhoto.getCurrentCollection());
+            }
+            catch (InvalidActivityException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage());
+            }
+        });
+
         //"organize automatically" label, dropdown combo box, and go button
-        JLabel labelAutoOrganize = new JLabel("<html>Auto<br/>Organize:</html>");
-        labelAutoOrganize.setPreferredSize(new Dimension(55, 40));
+        JPanel panelAutoOrganizeWithLabel = new JPanel(new BorderLayout());
+        panelAutoOrganizeWithLabel.setBackground(Color.gray);
+        JLabel labelAutoOrganize = new JLabel("Auto Organize:");
+        labelAutoOrganize.setPreferredSize(new Dimension(400, 25));
+        JPanel panelAutoOrganize = new JPanel();
+        panelAutoOrganize.setBackground(Color.gray);
         String[] organizationTypes = {"Name Ascending", "Name Descending", "Collections First", "Collections Last"};
         JComboBox<String> cbAutoOrganize = new JComboBox<>(organizationTypes);
         JButton btnAutoOrganize = new JButton("Go");
@@ -377,26 +397,15 @@ public class AppGui {
                 populateGridView(myPhoto.getCurrentCollection());
             }
         });
-
-        //"move media out of collection" button
-        JButton btnMoveUp = new JButton();
-        btnMoveUp.setText("Move Media Up");
-        btnMoveUp.setPreferredSize(new Dimension(150, 25));
-        btnMoveUp.addActionListener(e -> {
-            try {
-                myPhoto.moveMediaOut();
-                populateGridView(myPhoto.getCurrentCollection());
-            }
-            catch (InvalidActivityException ex) {
-                JOptionPane.showMessageDialog(null, ex.getMessage());
-            }
-        });
-
-        FbShareFolderDroppable fbShareFolder = new FbShareFolderDroppable();
+        panelAutoOrganize.add(cbAutoOrganize);
+        panelAutoOrganize.add(btnAutoOrganize);
+        panelAutoOrganizeWithLabel.add(labelAutoOrganize, BorderLayout.PAGE_START);
+        panelAutoOrganizeWithLabel.add(panelAutoOrganize);
 
         //"duplicate media" button
         JButton btnDuplicate = new JButton();
         btnDuplicate.setText("Duplicate Media");
+        btnDuplicate.setPreferredSize(new Dimension(400, 25));
         btnDuplicate.addActionListener(e -> {
             try {
                 myPhoto.createDuplicates();
@@ -410,6 +419,7 @@ public class AppGui {
         //"delete media" button
         JButton btnDelete = new JButton();
         btnDelete.setText("Delete Media");
+        btnDelete.setPreferredSize(new Dimension(400, 25));
         btnDelete.addActionListener(e -> {
             int confirmResult = JOptionPane.showConfirmDialog(null,
                     "Are you sure you want to delete media? Any nested media will also deleted.",
@@ -421,17 +431,17 @@ public class AppGui {
             }
         });
 
-        menuPanel.add(btnCreateCollection);
-        menuPanel.add(btnNavigateUp);
-        menuPanel.add(btnImport);
-        menuPanel.add(checkMultiSelect);
-        menuPanel.add(labelAutoOrganize);
-        menuPanel.add(cbAutoOrganize);
-        menuPanel.add(btnAutoOrganize);
-        menuPanel.add(btnMoveUp);
-        menuPanel.add(btnDuplicate);
-        menuPanel.add(btnDelete);
-        menuPanel.add(fbShareFolder);
+        FbShareFolderDroppable fbShareFolder = new FbShareFolderDroppable();
+
+        gbc.gridx = 0; gbc.gridy = 0; menuPanel.add(btnNavigateUp, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; menuPanel.add(btnImport, gbc);
+        gbc.gridx = 0; gbc.gridy = 2; menuPanel.add(btnCreateCollection, gbc);
+        gbc.gridx = 0; gbc.gridy = 3; menuPanel.add(checkMultiSelect, gbc);
+        gbc.gridx = 0; gbc.gridy = 4; menuPanel.add(btnMoveUp, gbc);
+        gbc.gridx = 0; gbc.gridy = 5; menuPanel.add(panelAutoOrganizeWithLabel, gbc);
+        gbc.gridx = 0; gbc.gridy = 6; menuPanel.add(btnDuplicate, gbc);
+        gbc.gridx = 0; gbc.gridy = 7; menuPanel.add(btnDelete, gbc);
+        gbc.gridx = 0; gbc.gridy = 8; gbc.insets.bottom = 0; menuPanel.add(fbShareFolder, gbc);
     }
 
     private void initializePlaybackPanels() {

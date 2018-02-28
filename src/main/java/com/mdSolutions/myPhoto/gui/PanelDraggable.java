@@ -75,7 +75,7 @@ public class PanelDraggable extends JPanel implements Transferable,
             iconLabel.setIcon(icon);
 
             if (mediaItem instanceof MediaCollection)
-                iconLabel.setBorder(BorderFactory.createMatteBorder(7,7,0,0, AppGui.MY_PURPLE_DARKER));
+                iconLabel.setBorder(BorderFactory.createMatteBorder(7,7,0,0, AppGui.MY_PURPLE_LIGHTER));
 
             add(iconLabel);
         }

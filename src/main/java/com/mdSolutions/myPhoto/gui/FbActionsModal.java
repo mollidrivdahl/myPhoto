@@ -35,6 +35,7 @@ public class FbActionsModal {
     private Scene scene;
     private WebEngine engine;
     private String curUrl;
+    private BridgeFromJavaScriptToJavaFx bridgeWebToJava;
 
     public FbActionsModal() {
         initializeFbModalComponents();
@@ -44,6 +45,7 @@ public class FbActionsModal {
         fbFrame = new JFrame();
         fbDialog = new JDialog(fbFrame, "Facebook Actions", true);
         fbJFXPanel = new JFXPanel();
+        bridgeWebToJava = new BridgeFromJavaScriptToJavaFx();
 
         setupFbJFXPanelAndWebView();
         setupFbDialog();
@@ -91,7 +93,7 @@ public class FbActionsModal {
 
                         // Set member for 'window' object.
                         // In Javascript access: window.javaBridgeMember....
-                        jsobj.setMember("javaBridgeMember", new BridgeFromJavaScriptToJavaFx());
+                        jsobj.setMember("javaBridgeMember", bridgeWebToJava);
                     }
 
                     //redirect from login, returning app code
@@ -235,7 +237,6 @@ public class FbActionsModal {
                 URL url = file.toURI().toURL();
                 engine.load(url.toString());
             } catch (Exception ex) { System.out.println(ex.getMessage()); }
-
 
             Thread uploadThread = new Thread(() -> {
                 FbMediaUploader.getInstance().uploadPhotos(albumName, message);

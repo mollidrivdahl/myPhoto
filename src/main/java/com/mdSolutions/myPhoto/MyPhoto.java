@@ -153,7 +153,7 @@ public class MyPhoto {
 
         currentCollection.unselectAllChildren();
     }
-    
+
     public void deleteMedia() {
         ArrayList<MediaItem> mediaToDelete = currentCollection.deleteMedia();
         DbAccess.getInstance().updateChildMediaArrangement(currentCollection);

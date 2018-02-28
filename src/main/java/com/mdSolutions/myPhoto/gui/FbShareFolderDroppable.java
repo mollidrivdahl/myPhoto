@@ -19,8 +19,8 @@ public class FbShareFolderDroppable extends PanelDroppable {
 
         super();
 
-        setPreferredSize(new Dimension(150, 50));
-        setBackground(Color.black);
+        setPreferredSize(new Dimension(100, 100));
+        setBackground(Color.DARK_GRAY);
         displayImage();
 
         //have it utilize a custom transfer handler
@@ -33,16 +33,17 @@ public class FbShareFolderDroppable extends PanelDroppable {
             BufferedImage image = ImageIO.read(new File("resources/fbImage.png"));
 
             // creates output image
-            BufferedImage outImage = new BufferedImage(95, 55, image.getType());
+            BufferedImage outImage = new BufferedImage(100, 100, image.getType());
 
             // scales the input image to the output image
             Graphics2D g2d = outImage.createGraphics();
-            g2d.drawImage(image, 0, -8, 95, 55, null);
+            g2d.drawImage(image, 0, 0, 100, 100, null);
             g2d.dispose();
 
             ImageIcon icon = new ImageIcon(outImage);
             JLabel iconLabel = new JLabel();
             iconLabel.setIcon(icon);
+
             add(iconLabel);
         }
         catch (IOException ex) {
