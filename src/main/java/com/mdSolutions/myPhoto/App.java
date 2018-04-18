@@ -11,21 +11,25 @@ import java.awt.event.WindowEvent;
  */
 public class App
 {
+    public static JFrame frame;
+
     public static void main( String[] args )
     {
-        JFrame frame = new JFrame("myPhoto");
-        frame.setContentPane(AppGui.getInstance().getWindowPanel());
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                System.out.println("closing app");
-                DbAccess.getInstance().closeConnection();
-                System.exit(0);
-            }
+        SwingUtilities.invokeLater(() -> {
+            frame = new JFrame("myPhoto");
+            frame.setContentPane(AppGui.getInstance().getWindowPanel());
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    System.out.println("closing app");
+                    DbAccess.getInstance().closeConnection();
+                    System.exit(0);
+                }
+            });
+            frame.pack();
+            frame.setLocationRelativeTo(null);  //opens window in center of screen
+            frame.setVisible(true);
         });
-        frame.pack();
-        frame.setLocationRelativeTo(null);  //opens window in center of screen
-        frame.setVisible(true);
     }
 }

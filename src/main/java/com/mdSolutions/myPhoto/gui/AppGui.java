@@ -11,6 +11,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class AppGui {
     public static final int MAIN_WIDTH = WIN_WIDTH - MENU_WIDTH - WIN_BORDER_THICKNESS;
     public static final int PLAYBACK_HEIGHT = 50;
     public static final int FB_ACTIONS_HEIGHT = 40;
+    private final static MouseAdapter mouseAdapter = new MouseAdapter() {};    //used for disabling mouse
     public static final Color MY_PURPLE = new Color(119, 21, 165);
     public static final Color MY_PURPLE_LIGHTER = new Color(143, 22, 200);
     public static final Color MY_RED = new Color(242, 33, 65);
@@ -185,7 +187,7 @@ public class AppGui {
         initializeFbUploadPanel();
 
         //--add root collection's "media items" to center panel
-        populateGridView(myPhoto.getCurrentCollection());
+        populateGridViewTransitioning(myPhoto.getCurrentCollection());
     }
 
     private void initializeMenuPanel() {
@@ -201,7 +203,7 @@ public class AppGui {
         btnNavigateUp.addActionListener(e -> {
             if (myPhoto.getCurrentCollection().getId() != 1) {
                 myPhoto.refreshCurrentCollection(myPhoto.getCurrentCollection().getParentId());
-                populateGridView(myPhoto.getCurrentCollection());
+                populateGridViewTransitioning(myPhoto.getCurrentCollection());
             }
         });
 
@@ -516,6 +518,11 @@ public class AppGui {
     }
 
     public void populateGridView(MediaCollection gridViewCollection) {
+        RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        root.getGlassPane().addMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(true);
+
         gridViewPanel.removeAll();
 
         //iterate over media items from head to tail
@@ -530,6 +537,45 @@ public class AppGui {
 
         gridViewPanel.revalidate();
         gridViewPanel.repaint();
+
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        root.getGlassPane().removeMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(false);
+    }
+
+    public void populateGridViewTransitioning(MediaCollection gridViewCollection) {
+
+        Thread processUpdateThread = new Thread(() -> {
+            gridViewPanel.removeAll();
+
+            //iterate over media items from head to tail
+            MediaItem travel = gridViewCollection.getHeadItem();
+            int index = 0;
+
+            while (travel != null) {
+                appendToGridView(travel, index);
+                index++;
+                travel = travel.getNextItem();
+
+                Thread updateUiThread = new Thread(() -> {
+                    gridViewPanel.revalidate();
+                    gridViewPanel.repaint();
+                });
+                updateUiThread.start();
+            }
+
+            RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            root.getGlassPane().removeMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(false);
+        });
+
+        RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        root.getGlassPane().addMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(true);
+
+        processUpdateThread.start();
     }
 
     public void appendToGridView(MediaItem addedMediaItem, int index) {

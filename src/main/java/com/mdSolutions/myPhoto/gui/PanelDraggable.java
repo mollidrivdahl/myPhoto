@@ -151,7 +151,7 @@ public class PanelDraggable extends JPanel implements Transferable,
     private void navigateIntoCollection() {
         MyPhoto myPhoto = AppGui.getInstance().getMyPhoto();
         myPhoto.refreshCurrentCollection(mediaItem.getId());
-        AppGui.getInstance().populateGridView(myPhoto.getCurrentCollection());
+        AppGui.getInstance().populateGridViewTransitioning(myPhoto.getCurrentCollection());
     }
 
     private void viewPhotoInWindow() {
