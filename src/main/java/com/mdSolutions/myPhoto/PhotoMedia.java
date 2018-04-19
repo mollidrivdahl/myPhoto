@@ -14,7 +14,7 @@ import java.io.File;
 public class PhotoMedia extends IndividualMedia {
 
     private enum ORIENTATION { STRAIGHT, RIGHTWARD, UPSIDEDOWN, LEFTWARD }
-    private @Getter @Setter ImageIcon image;
+    private @Getter @Setter ImageIcon image = null;
     private ORIENTATION curOrientation;
     private double curZoomMultiplier;
 
@@ -47,18 +47,20 @@ public class PhotoMedia extends IndividualMedia {
             g2d.dispose();
 
             //setup full size image for local variable, maintaining original aspect-ratio
-            //TODO: adjust full size calculation for a re-sized window
-            Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(originalImg.getWidth(), originalImg.getHeight()),
-                    new Dimension(AppGui.MAIN_WIDTH - 10, AppGui.MID_HEIGHT - AppGui.PLAYBACK_HEIGHT - 10)); //-10 for scrollbar
-            BufferedImage tempFullSize = new BufferedImage((int)fullSizeAspectRatio.getWidth(),
-                    (int)fullSizeAspectRatio.getHeight(), originalImg.getType());
-            g2d = tempFullSize.createGraphics();
-            g2d.drawImage(originalImg, 0, 0, (int)fullSizeAspectRatio.getWidth(), (int)fullSizeAspectRatio.getHeight(),null);
-            g2d.dispose();
+            if (image == null) {
+                //TODO: adjust full size calculation for a re-sized window
+                Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(originalImg.getWidth(), originalImg.getHeight()),
+                        new Dimension(AppGui.MAIN_WIDTH - 10, AppGui.MID_HEIGHT - AppGui.PLAYBACK_HEIGHT - 10)); //-10 for scrollbar
+                BufferedImage tempFullSize = new BufferedImage((int) fullSizeAspectRatio.getWidth(),
+                        (int) fullSizeAspectRatio.getHeight(), originalImg.getType());
+                g2d = tempFullSize.createGraphics();
+                g2d.drawImage(originalImg, 0, 0, (int) fullSizeAspectRatio.getWidth(), (int) fullSizeAspectRatio.getHeight(), null);
+                g2d.dispose();
 
-            image = new ImageIcon(tempFullSize);
-            curOrientation = ORIENTATION.STRAIGHT;
-            curZoomMultiplier = 1;
+                image = new ImageIcon(tempFullSize);
+                curOrientation = ORIENTATION.STRAIGHT;
+                curZoomMultiplier = 1;
+            }
         }
         catch (Exception ex) {
             System.out.println(ex.getMessage());
@@ -87,18 +89,20 @@ public class PhotoMedia extends IndividualMedia {
             g2d.dispose();
 
             //setup full size image for local variable, maintaining original aspect-ratio
-            //TODO: adjust full size calculation for a re-sized window
-            Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(originalImg.getWidth(), originalImg.getHeight()),
-                    new Dimension(AppGui.MAIN_WIDTH - 10, AppGui.MID_HEIGHT - AppGui.PLAYBACK_HEIGHT - 10)); //-10 for scrollbar
-            BufferedImage tempFullSize = new BufferedImage((int)fullSizeAspectRatio.getWidth(),
-                    (int)fullSizeAspectRatio.getHeight(), originalImg.getType());
-            g2d = tempFullSize.createGraphics();
-            g2d.drawImage(originalImg, 0, 0, (int)fullSizeAspectRatio.getWidth(), (int)fullSizeAspectRatio.getHeight(),null);
-            g2d.dispose();
+            if (image == null) {
+                //TODO: adjust full size calculation for a re-sized window
+                Dimension fullSizeAspectRatio = calcScaledDimension(new Dimension(originalImg.getWidth(), originalImg.getHeight()),
+                        new Dimension(AppGui.MAIN_WIDTH - 10, AppGui.MID_HEIGHT - AppGui.PLAYBACK_HEIGHT - 10)); //-10 for scrollbar
+                BufferedImage tempFullSize = new BufferedImage((int) fullSizeAspectRatio.getWidth(),
+                        (int) fullSizeAspectRatio.getHeight(), originalImg.getType());
+                g2d = tempFullSize.createGraphics();
+                g2d.drawImage(originalImg, 0, 0, (int) fullSizeAspectRatio.getWidth(), (int) fullSizeAspectRatio.getHeight(), null);
+                g2d.dispose();
 
-            image = new ImageIcon(tempFullSize);
-            curOrientation = ORIENTATION.STRAIGHT;
-            curZoomMultiplier = 1;
+                image = new ImageIcon(tempFullSize);
+                curOrientation = ORIENTATION.STRAIGHT;
+                curZoomMultiplier = 1;
+            }
         }
         catch (Exception ex) {
             System.out.println(ex.getMessage());

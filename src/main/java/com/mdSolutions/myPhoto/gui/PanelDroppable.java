@@ -24,27 +24,27 @@ public abstract class PanelDroppable extends JPanel implements DropTargetListene
 
     //This is what happens when a Drop occurs
     public void drop(DropTargetDropEvent dtde) {
-        try {
+        //try {
             Point loc = dtde.getLocation();                 //get the Point where the drop occurred
             Transferable t = dtde.getTransferable();        //get Transfer data
             DataFlavor[] d = t.getTransferDataFlavors();    //get the Data flavors transferred with the Transferable
 
-            PanelDraggable tempDraggable = (PanelDraggable)t.getTransferData(d[0]);
+            //PanelDraggable tempDraggable = (PanelDraggable)t.getTransferData(d[0]);
 
             //and if the DataFlavors match for the PanelDroppable
             if(getTransferHandler().canImport(this, d)){
 
                 //then import the Draggable JComponent
-                ((MyTransferHandler)getTransferHandler()).importData(this, tempDraggable, loc);
+                ((MyTransferHandler)getTransferHandler()).importData(this, null, loc);
             }
             else return;
 
-        } catch (UnsupportedFlavorException ex) {
+        /*} catch (UnsupportedFlavorException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        finally{ dtde.dropComplete(true); }
+        finally{ dtde.dropComplete(true); }*/
     }
 
     protected abstract class MyTransferHandler extends TransferHandler{

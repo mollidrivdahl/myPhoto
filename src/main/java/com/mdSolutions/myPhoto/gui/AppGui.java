@@ -449,10 +449,12 @@ public class AppGui {
     private void initializePlaybackPanels() {
         photoPlaybackPanel = new JPanel();
         videoPlaybackPanel = new JPanel();  //updated later within MyMediaPlayer
+        JSlider sliderZoom = new JSlider(JSlider.HORIZONTAL, 1, 10, 2);
 
         JButton btnGoBack = new JButton("<-- Go Back");
         btnGoBack.addActionListener(e -> {
-            //remove the image and viewing playback features from corresponding panels
+            //remove the image and viewing playback features from corresponding panels, reset slider value
+            sliderZoom.setValue(2);
             mediaDisplayPanel.removeAll();
             mediaPlaybackPanel.remove(photoPlaybackPanel);
             myPhoto.getCurrentCollection().unselectAllChildren();
@@ -472,7 +474,6 @@ public class AppGui {
             ((JLabel)mediaDisplayPanel.getComponent(0)).setIcon(media.getImage());
         });
 
-        JSlider sliderZoom = new JSlider(JSlider.HORIZONTAL, 1, 10, 2);
         sliderZoom.addChangeListener(e -> {
             JSlider source = (JSlider)e.getSource();
 
@@ -586,7 +587,7 @@ public class AppGui {
         PanelDraggable mediaItemPanel = new PanelDraggable(addedMediaItem, index);
 
         //add thumbnail/cover photo to draggable media item
-        mediaItemPanel.displayImage(addedMediaItem.view());
+        mediaItemPanel.displayImage();
 
         //add draggable media item into center of drop zone
         dropZone.addPanelDraggable(mediaItemPanel);
@@ -619,8 +620,17 @@ public class AppGui {
                 System.out.println(selectedFiles[i].getAbsolutePath());
             }
 
+            RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            root.getGlassPane().addMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(true);
+
             //copy files into myPhoto directory and follow import procedures
             ArrayList<String> failedImports = myPhoto.importMedia(selectedFiles);    //returns list of files that failed import
+
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            root.getGlassPane().addMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(false);
 
             if (failedImports.size() > 0)
                 JOptionPane.showMessageDialog(null, "Failed to import at least one of each of the following files:\n "
@@ -640,8 +650,17 @@ public class AppGui {
                 droppedFiles.add(file);
             }
 
+            RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            root.getGlassPane().addMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(true);
+
             //copy files into myPhoto directory and follow import procedures
             ArrayList<String> failedImports = myPhoto.importMedia(droppedFiles.toArray(new File[]{}));    //returns list of files that failed import
+
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            root.getGlassPane().addMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(false);
 
             if (failedImports.size() > 0)
                 JOptionPane.showMessageDialog(null, "Failed to import at least one of each of the following files:\n "

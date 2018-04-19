@@ -6,6 +6,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -109,6 +110,12 @@ public class FbShareFolderDroppable extends PanelDroppable {
     }
 
     private void displayPhotoShareFolder() {
+        final MouseAdapter mouseAdapter = new MouseAdapter() {};
+        RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        root.getGlassPane().addMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(true);
+
         AppGui guiInstance = AppGui.getInstance();
 
         //load fb grid display panel with photos
@@ -121,9 +128,19 @@ public class FbShareFolderDroppable extends PanelDroppable {
         guiInstance.getCenterScrollPane().setViewportView(guiInstance.getFbViewPanel());
 
         FbMediaUploader.getInstance().setUploadType(FbMediaUploader.MEDIA_TYPE.PHOTOS);
+
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        root.getGlassPane().addMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(false);
     }
 
     private void displayVideoShareFolder() {
+        final MouseAdapter mouseAdapter = new MouseAdapter() {};
+        RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        root.getGlassPane().addMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(true);
+
         AppGui guiInstance = AppGui.getInstance();
 
         //load fb grid display panel with photos
@@ -136,6 +153,10 @@ public class FbShareFolderDroppable extends PanelDroppable {
         guiInstance.getCenterScrollPane().setViewportView(guiInstance.getFbViewPanel());
 
         FbMediaUploader.getInstance().setUploadType(FbMediaUploader.MEDIA_TYPE.VIDEOS);
+
+        root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        root.getGlassPane().addMouseListener(mouseAdapter);
+        root.getGlassPane().setVisible(false);
     }
 
     public void populateFbGridDisplay(AppGui guiInstance, ArrayList<IndividualMedia> mediaItems) {
@@ -166,7 +187,17 @@ public class FbShareFolderDroppable extends PanelDroppable {
         @Override
         public boolean importData(JComponent comp, Transferable t, Point p) {
 
+            final MouseAdapter mouseAdapter = new MouseAdapter() {};
+            RootPaneContainer root = (RootPaneContainer)App.frame.getRootPane().getTopLevelAncestor();
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            root.getGlassPane().addMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(true);
+
             copyMediaToFbShareFolder();
+
+            root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            root.getGlassPane().addMouseListener(mouseAdapter);
+            root.getGlassPane().setVisible(false);
 
             return true;
         }

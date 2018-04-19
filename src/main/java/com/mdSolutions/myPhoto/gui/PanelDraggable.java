@@ -65,7 +65,9 @@ public class PanelDraggable extends JPanel implements Transferable,
         addMouseListener(initializeMouseListener());
     }
 
-    public void displayImage(BufferedImage image) {
+    public void displayImage() {
+        BufferedImage image = mediaItem.view();
+
         if (image == null) {
             setBackground(Color.black);
         }
